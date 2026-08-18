@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NutriIA - Nutrição Inteligente</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --primary-dark: #1b5e20;
+            --primary-light: #4caf50;
+            --primary-lighter: #e8f5e9;
+            --accent: #ff8f00;
+            --accent-light: #fff8e1;
+            --danger: #c62828;
+            --danger-light: #ffebee;
+            --warning: #ef6c00;
+            --warning-light: #fff3e0;
+            --info: #0277bd;
+            --info-light: #e1f5fe;
+            --bg: #f5f7f5;
+            --card-bg: #ffffff;
+            --text: #1a1a1a;
+            --text-secondary: #555;
+            --text-light: #777;
+            --border: #e0e0e0;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 20px;
+            --transition: 0.3s ease;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --bottom-nav-height: 64px;
+            --header-height: 60px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: #fff;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            height: var(--header-height);
+            flex-shrink: 0;
+            z-index: 50;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .header .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header .logo .icon {
+            font-size: 1.8rem;
+            background: rgba(255, 255, 255, 0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header .tagline {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* MAIN CONTAINER (SCROLLABLE PAGES) */
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 12px 10px 20px;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        .page {
+            display: none;
+            animation: fadeInUp 0.35s ease;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* BOTTOM NAVIGATION */
+        .bottom-nav {
+            height: var(--bottom-nav-height);
+            background: #fff;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-shrink: 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 50;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            font-size: 0.65rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: var(--transition);
+            flex: 1;
+            height: 100%;
+            padding: 4px 0;
+            border: none;
+            background: transparent;
+            text-decoration: none;
+        }
+
+        .bottom-nav-item .nav-icon {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .bottom-nav-item.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .bottom-nav-item.active .nav-icon {
+            transform: scale(1.1);
+            transition: transform 0.2s;
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 18px 16px;
+            margin-bottom: 14px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .card:active {
+            transform: scale(0.99);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title .emoji {
+            font-size: 1.3rem;
+        }
+
+        .card-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+        }
+
+        /* FORM */
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-family: var(--font);
+            transition: var(--transition);
+            background: #fafafa;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary-light);
+            outline: none;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* BUTTONS */
+        .btn {
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font);
+            text-decoration: none;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary-lighter);
+        }
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-accent:hover {
+            background: #e65100;
+        }
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 0.8rem;
+        }
+        .btn-lg {
+            padding: 16px 28px;
+            font-size: 1.1rem;
+            width: 100%;
+        }
+
+        /* RESULTS */
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin: 14px 0;
+        }
+        .result-card {
+            background: var(--primary-lighter);
+            border-radius: var(--radius-sm);
+            padding: 12px 8px;
+            text-align: center;
+            border: 2px solid var(--primary-light);
+        }
+        .result-card .value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            line-height: 1.2;
+        }
+        .result-card .label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .result-card.accent {
+            background: var(--accent-light);
+            border-color: var(--accent);
+        }
+        .result-card.accent .value {
+            color: #e65100;
+        }
+        .result-card.danger {
+            background: var(--danger-light);
+            border-color: #ef5350;
+        }
+        .result-card.danger .value {
+            color: var(--danger);
+        }
+
+        /* TABLE (for food bank) */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 12px 0;
+            -webkit-overflow-scrolling: touch;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 550px;
+        }
+        table th {
+            background: var(--primary-lighter);
+            color: var(--primary-dark);
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary-light);
+            white-space: nowrap;
+        }
+        table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        table tr:hover td {
+            background: #f9fbe9;
+        }
+
+        /* CHAT */
+        .chat-container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 55vh;
+            max-height: 500px;
+            overflow: hidden;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .chat-message.user {
+            background: var(--primary);
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-message.ai {
+            background: var(--primary-lighter);
+            color: var(--text);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #c8e6c9;
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 10px;
+            border-top: 1px solid var(--border);
+            background: #fafafa;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-family: var(--font);
+        }
+        .chat-input-area input:focus {
+            border-color: var(--primary-light);
+            outline: none;
+        }
+        .chat-input-area button {
+            padding: 10px 16px;
+            border-radius: 25px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .chat-input-area button:active {
+            transform: scale(0.95);
+        }
+
+        /* EXAM ALERT */
+        .exam-alert {
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            margin: 6px 0;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .exam-alert.normal {
+            background: var(--primary-lighter);
+            color: var(--primary-dark);
+            border-left: 4px solid var(--primary);
+        }
+        .exam-alert.warning {
+            background: var(--warning-light);
+            color: var(--warning);
+            border-left: 4px solid var(--warning);
+        }
+        .exam-alert.danger {
+            background: var(--danger-light);
+            color: var(--danger);
+            border-left: 4px solid var(--danger);
+        }
+        .exam-alert.info {
+            background: var(--info-light);
+            color: var(--info);
+            border-left: 4px solid var(--info);
+        }
+
+        /* MEAL PLAN */
+        .meal-card {
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin: 10px 0;
+            background: #fafafa;
+            transition: var(--transition);
+        }
+        .meal-card:active {
+            border-color: var(--primary-light);
+        }
+        .meal-card .meal-name {
+            font-weight: 700;
+            color: var(--primary-dark);
+            font-size: 1rem;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .meal-card .meal-details {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .meal-card .meal-macros {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+        }
+        .meal-card .meal-macros span {
+            background: var(--primary-lighter);
+            padding: 3px 8px;
+            border-radius: 12px;
+            color: var(--primary-dark);
+            font-weight: 500;
+        }
+
+        /* PROGRESS BAR */
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin: 6px 0;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s ease;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary));
+        }
+        .progress-bar .fill.warning {
+            background: linear-gradient(90deg, #ffa726, var(--warning));
+        }
+        .progress-bar .fill.danger {
+            background: linear-gradient(90deg, #ef5350, var(--danger));
+        }
+
+        /* BADGE */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin: 2px;
+        }
+        .badge-green {
+            background: var(--primary-lighter);
+            color: var(--primary-dark);
+        }
+        .badge-orange {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+        .badge-red {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+        .badge-blue {
+            background: var(--info-light);
+            color: var(--info);
+        }
+
+        .food-price {
+            color: var(--text-light);
+            font-size: 0.7rem;
+            font-style: italic;
+        }
+
+        /* Scrollbar estilizado */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 4px;
+        }
+
+        /* Ajustes para telas muito pequenas */
+        @media (max-width: 360px) {
+            .form-row,
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+            .bottom-nav-item .nav-icon {
+                font-size: 1.2rem;
+            }
+            .bottom-nav-item {
+                font-size: 0.55rem;
+            }
+            .header .logo {
+                font-size: 1.1rem;
+            }
+            .header .logo .icon {
+                width: 32px;
+                height: 32px;
+                font-size: 1.4rem;
+            }
+            .chat-message {
+                max-width: 95%;
+            }
+        }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">
+            <span class="icon">🥗</span>
+            <div>
+                NutriIA
+                <div class="tagline">Nutrição Inteligente & Acessível</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- APP CONTENT -->
+    <div class="app-content" id="appContent">
+
+        <!-- PAGE: DADOS -->
+        <div class="page active" id="page-dados">
+            <div class="card">
+                <h2 class="card-title"><span class="emoji">📋</span> Seus Dados Pessoais</h2>
+                <p class="card-subtitle">Preencha para calcular seu gasto basal e montar sua dieta ideal.</p>
+                <form id="dadosForm" onsubmit="event.preventDefault(); calcularTudo();">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nome</label>
+                            <input type="text" id="nome" placeholder="Seu nome" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Sexo</label>
+                            <select id="sexo">
+                                <option value="masculino">Masculino</option>
+                                <option value="feminino">Feminino</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Idade</label>
+                            <input type="number" id="idade" min="12" max="100" value="30" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Peso (kg)</label>
+                            <input type="number" id="peso" min="30" max="300" step="0.1" value="70" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Altura (cm)</label>
+                            <input type="number" id="altura" min="100" max="250" value="170" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Atividade Física</label>
+                            <select id="atividade">
+                                <option value="1.2">Sedentário</option>
+                                <option value="1.375" selected>Leve (1-3x/sem)</option>
+                                <option value="1.55">Moderado (3-5x/sem)</option>
+                                <option value="1.725">Intenso (6-7x/sem)</option>
+                                <option value="1.9">Atleta (2x/dia)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Objetivo</label>
+                            <select id="objetivo">
+                                <option value="perda">Perda de Peso</option>
+                                <option value="manutencao" selected>Manutenção</option>
+                                <option value="ganho">Ganho de Massa</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Restrições Alimentares</label>
+                        <select id="restricoes">
+                            <option value="nenhuma">Nenhuma</option>
+                            <option value="vegetariano">Vegetariano</option>
+                            <option value="vegano">Vegano</option>
+                            <option value="intolerancia-lactose">Intolerância à Lactose</option>
+                            <option value="intolerancia-gluten">Intolerância ao Glúten</option>
+                            <option value="diabetes">Diabetes / Pré-diabetes</option>
+                            <option value="hipertensao">Hipertensão</option>
+                            <option value="colesterol-alto">Colesterol Alto</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="submit" class="btn btn-primary btn-lg" onclick="calcularTudo(); irPara('resultados');">
+                            🧮 Calcular & Gerar Dieta
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="resetForm()">🔄 Limpar</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card" style="background: var(--primary-lighter); border-color: var(--primary-light);">
+                <h3 class="card-title"><span class="emoji">💡</span> Como funciona?</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                    Utilizamos a fórmula de <strong>Mifflin-St Jeor</strong> para calcular seu <strong>Gasto Energético Basal</strong>.
+                    Depois ajustamos com seu nível de atividade e objetivo. Nossa <strong>IA Nutricional</strong> distribui macronutrientes
+                    e monta um plano com alimentos brasileiros de <strong>baixo custo</strong>.
+                    Se adicionar exames de sangue, a dieta é ajustada automaticamente.
+                </p>
+            </div>
+        </div>
+
+        <!-- PAGE: EXAMES -->
+        <div class="page" id="page-exames">
+            <div class="card">
+                <h2 class="card-title"><span class="emoji">🩸</span> Exames de Sangue (Opcional)</h2>
+                <p class="card-subtitle">
+                    Adicione seus resultados para que a IA ajuste a dieta de forma personalizada.
+                    Valores fora dos intervalos serão destacados.
+                </p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;">
+                    <button class="btn btn-sm btn-outline" onclick="toggleExames(true)">✅ Tenho exames</button>
+                    <button class="btn btn-sm btn-outline" onclick="toggleExames(false)">❌ Não tenho</button>
+                </div>
+                <div id="examesContainer" style="display: none;">
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Hemoglobina <small>(12-16)</small></label>
+                            <input type="number" id="hemoglobina" step="0.1" placeholder="g/dL">
+                        </div>
+                        <div class="form-group">
+                            <label>Ferritina <small>(15-150)</small></label>
+                            <input type="number" id="ferritina" step="0.1" placeholder="ng/mL">
+                        </div>
+                        <div class="form-group">
+                            <label>Vitamina D <small>(30-60)</small></label>
+                            <input type="number" id="vitaminaD" step="0.1" placeholder="ng/mL">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Vitamina B12 <small>(200-900)</small></label>
+                            <input type="number" id="vitaminaB12" step="0.1" placeholder="pg/mL">
+                        </div>
+                        <div class="form-group">
+                            <label>Glicose <small>(70-99)</small></label>
+                            <input type="number" id="glicose" step="0.1" placeholder="mg/dL">
+                        </div>
+                        <div class="form-group">
+                            <label>HbA1c <small>(&lt;5.7)</small></label>
+                            <input type="number" id="hemoglobinaGlicada" step="0.1" placeholder="%">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Colesterol Total <small>(&lt;190)</small></label>
+                            <input type="number" id="colesterolTotal" step="0.1" placeholder="mg/dL">
+                        </div>
+                        <div class="form-group">
+                            <label>HDL <small>(&gt;40)</small></label>
+                            <input type="number" id="hdl" step="0.1" placeholder="mg/dL">
+                        </div>
+                        <div class="form-group">
+                            <label>LDL <small>(&lt;130)</small></label>
+                            <input type="number" id="ldl" step="0.1" placeholder="mg/dL">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Triglicerídeos <small>(&lt;150)</small></label>
+                            <input type="number" id="triglicerideos" step="0.1" placeholder="mg/dL">
+                        </div>
+                        <div class="form-group">
+                            <label>TSH <small>(0.4-4.0)</small></label>
+                            <input type="number" id="tsh" step="0.01" placeholder="mUI/L">
+                        </div>
+                        <div class="form-group">
+                            <label>Creatinina <small>(0.6-1.2)</small></label>
+                            <input type="number" id="creatinina" step="0.1" placeholder="mg/dL">
+                        </div>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <button class="btn btn-accent" onclick="analisarExames()">🔬 Analisar Exames</button>
+                    </div>
+                    <div id="examesResultado" style="margin-top: 16px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: RESULTADOS -->
+        <div class="page" id="page-resultados">
+            <div class="card">
+                <h2 class="card-title"><span class="emoji">📊</span> Seus Resultados</h2>
+                <p class="card-subtitle">Cálculo do gasto energético e distribuição de macronutrientes.</p>
+                <div id="resultadosContent">
+                    <p style="color: var(--text-light);">Preencha seus dados na aba "Dados" e clique em "Calcular" para ver os resultados.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: PLANO ALIMENTAR -->
+        <div class="page" id="page-plano">
+            <div class="card">
+                <h2 class="card-title"><span class="emoji">🍽️</span> Plano Alimentar Personalizado</h2>
+                <p class="card-subtitle">Gerado pela IA Nutricional com base nos seus dados e exames.</p>
+                <div id="planoContent">
+                    <p style="color: var(--text-light);">Gere sua dieta na aba "Dados" para ver o plano completo.</p>
+                </div>
+                <button class="btn btn-outline btn-sm" id="btnExportar" style="display:none; margin-top:12px;" onclick="exportarPlano()">
+                    📥 Exportar Plano (TXT)
+                </button>
+            </div>
+            <div class="card">
+                <h3 class="card-title"><span class="emoji">💰</span> Alimentos de Baixo Custo Incluídos</h3>
+                <div id="alimentosResumo" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;"></div>
+            </div>
+        </div>
+
+        <!-- PAGE: ALIMENTOS -->
+        <div class="page" id="page-alimentos">
+            <div class="card">
+                <h2 class="card-title"><span class="emoji">🛒</span> Banco de Alimentos Acessíveis</h2>
+                <p class="card-subtitle">Nossa base de dados de alimentos brasileiros com ótimo custo-benefício.</p>
+                <div class="table-wrapper">
+                    <table id="tabelaAlimentos">
+                        <thead>
+                            <tr>
+                                <th>Alimento</th>
+                                <th>Categoria</th>
+                                <th>Calorias</th>
+                                <th>Proteína</th>
+                                <th>Carbo</th>
+                                <th>Gordura</th>
+                                <th>Custo/kg</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alimentosBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: CHAT IA -->
+        <div class="page" id="page-chat">
+            <div class="card">
+                <h2 class="card-title"><span class="emoji">🤖</span> IA Nutricional</h2>
+                <p class="card-subtitle">Converse com nossa especialista em nutrição e esportiva.</p>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-message ai">
+                            👋 Olá! Sou a <strong>NutriIA</strong>, sua especialista em nutrição.
+                            Posso ajudar com dietas, alimentos baratos, exames, treinos e mais.
+                            O que gostaria de saber?
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Pergunte sobre nutrição..." onkeypress="if(event.key==='Enter') enviarMensagem()">
+                        <button onclick="enviarMensagem()">➤</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="bottom-nav-item active" data-page="dados" onclick="irPara('dados')">
+            <span class="nav-icon">📋</span> Dados
+        </button>
+        <button class="bottom-nav-item" data-page="exames" onclick="irPara('exames')">
+            <span class="nav-icon">🩸</span> Exames
+        </button>
+        <button class="bottom-nav-item" data-page="resultados" onclick="irPara('resultados')">
+            <span class="nav-icon">📊</span> Resultados
+        </button>
+        <button class="bottom-nav-item" data-page="plano" onclick="irPara('plano')">
+            <span class="nav-icon">🍽️</span> Plano
+        </button>
+        <button class="bottom-nav-item" data-page="alimentos" onclick="irPara('alimentos')">
+            <span class="nav-icon">🛒</span> Alimentos
+        </button>
+        <button class="bottom-nav-item" data-page="chat" onclick="irPara('chat')">
+            <span class="nav-icon">🤖</span> IA
+        </button>
+    </nav>
+
+    <!-- TOAST -->
+    <div id="toast"></div>
+
+    <script>
+        // ==================== CONFIGURAÇÃO FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBelOdopLL9Fq_ekrL_u6Y602h8GbQA5Mc",
+            authDomain: "nutriia-d39b2.firebaseapp.com",
+            projectId: "nutriia-d39b2",
+            storageBucket: "nutriia-d39b2.firebasestorage.app",
+            messagingSenderId: "998740161295",
+            appId: "1:998740161295:web:ee69614315af7e5a81447a",
+            measurementId: "G-DDK1N5MYXX"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let currentUser = null;
+
+        // ==================== BASE DE DADOS DE ALIMENTOS ====================
+        const alimentos = [
+            { nome: 'Arroz Branco', categoria: 'Cereais', cal: 130, prot: 2.7, carbo: 28, gord: 0.3, custo: 5.0 },
+            { nome: 'Arroz Integral', categoria: 'Cereais', cal: 124, prot: 2.6, carbo: 26, gord: 1.0, custo: 8.0 },
+            { nome: 'Feijão Carioca', categoria: 'Leguminosas', cal: 76, prot: 4.8, carbo: 13.6, gord: 0.5, custo: 7.5 },
+            { nome: 'Feijão Preto', categoria: 'Leguminosas', cal: 77, prot: 4.5, carbo: 14, gord: 0.5, custo: 8.0 },
+            { nome: 'Lentilha', categoria: 'Leguminosas', cal: 116, prot: 9, carbo: 20, gord: 0.4, custo: 12.0 },
+            { nome: 'Grão de Bico', categoria: 'Leguminosas', cal: 164, prot: 8.9, carbo: 27, gord: 2.6, custo: 14.0 },
+            { nome: 'Ovo de Galinha', categoria: 'Proteínas', cal: 155, prot: 13, carbo: 1.1, gord: 11, custo: 11.0 },
+            { nome: 'Peito de Frango', categoria: 'Proteínas', cal: 165, prot: 31, carbo: 0, gord: 3.6, custo: 16.0 },
+            { nome: 'Sobrecoxa de Frango', categoria: 'Proteínas', cal: 209, prot: 26, carbo: 0, gord: 11, custo: 10.0 },
+            { nome: 'Carne Moída (patinho)', categoria: 'Proteínas', cal: 187, prot: 27, carbo: 0, gord: 8, custo: 28.0 },
+            { nome: 'Sardinha em Lata', categoria: 'Proteínas', cal: 208, prot: 25, carbo: 0, gord: 11, custo: 15.0 },
+            { nome: 'Atum em Lata', categoria: 'Proteínas', cal: 132, prot: 29, carbo: 0, gord: 1, custo: 22.0 },
+            { nome: 'Banana Prata', categoria: 'Frutas', cal: 89, prot: 1.1, carbo: 23, gord: 0.3, custo: 4.5 },
+            { nome: 'Banana Nanica', categoria: 'Frutas', cal: 92, prot: 1.4, carbo: 24, gord: 0.2, custo: 4.0 },
+            { nome: 'Maçã', categoria: 'Frutas', cal: 52, prot: 0.3, carbo: 14, gord: 0.2, custo: 6.0 },
+            { nome: 'Laranja Pera', categoria: 'Frutas', cal: 47, prot: 0.9, carbo: 12, gord: 0.1, custo: 3.5 },
+            { nome: 'Mamão Papaia', categoria: 'Frutas', cal: 43, prot: 0.5, carbo: 11, gord: 0.3, custo: 5.0 },
+            { nome: 'Melancia', categoria: 'Frutas', cal: 30, prot: 0.6, carbo: 8, gord: 0.2, custo: 2.5 },
+            { nome: 'Abacaxi', categoria: 'Frutas', cal: 50, prot: 0.5, carbo: 13, gord: 0.1, custo: 5.0 },
+            { nome: 'Batata Doce', categoria: 'Tubérculos', cal: 86, prot: 1.6, carbo: 20, gord: 0.1, custo: 6.0 },
+            { nome: 'Batata Inglesa', categoria: 'Tubérculos', cal: 77, prot: 2, carbo: 17, gord: 0.1, custo: 3.5 },
+            { nome: 'Mandioca (aipim)', categoria: 'Tubérculos', cal: 160, prot: 1.4, carbo: 38, gord: 0.3, custo: 4.0 },
+            { nome: 'Aveia em Flocos', categoria: 'Cereais', cal: 389, prot: 16.9, carbo: 66, gord: 6.9, custo: 12.0 },
+            { nome: 'Pão Francês', categoria: 'Cereais', cal: 300, prot: 8, carbo: 58, gord: 3.3, custo: 15.0 },
+            { nome: 'Pão Integral', categoria: 'Cereais', cal: 247, prot: 13, carbo: 41, gord: 3.5, custo: 18.0 },
+            { nome: 'Cuscuz de Milho', categoria: 'Cereais', cal: 113, prot: 2.3, carbo: 25, gord: 0.2, custo: 4.0 },
+            { nome: 'Tapioca (goma)', categoria: 'Cereais', cal: 240, prot: 0, carbo: 60, gord: 0, custo: 5.0 },
+            { nome: 'Macarrão', categoria: 'Cereais', cal: 158, prot: 5.8, carbo: 31, gord: 0.9, custo: 5.5 },
+            { nome: 'Leite Integral', categoria: 'Laticínios', cal: 61, prot: 3.2, carbo: 4.8, gord: 3.3, custo: 4.0 },
+            { nome: 'Leite Desnatado', categoria: 'Laticínios', cal: 34, prot: 3.4, carbo: 5, gord: 0.3, custo: 4.5 },
+            { nome: 'Iogurte Natural', categoria: 'Laticínios', cal: 61, prot: 3.5, carbo: 4.7, gord: 3.3, custo: 9.0 },
+            { nome: 'Queijo Minas', categoria: 'Laticínios', cal: 264, prot: 17, carbo: 3, gord: 20, custo: 25.0 },
+            { nome: 'Couve Manteiga', categoria: 'Verduras', cal: 49, prot: 3.3, carbo: 9, gord: 0.7, custo: 3.5 },
+            { nome: 'Alface', categoria: 'Verduras', cal: 15, prot: 1.4, carbo: 2.9, gord: 0.2, custo: 4.0 },
+            { nome: 'Brócolis', categoria: 'Verduras', cal: 34, prot: 2.8, carbo: 7, gord: 0.4, custo: 6.0 },
+            { nome: 'Cenoura', categoria: 'Verduras', cal: 41, prot: 0.9, carbo: 10, gord: 0.2, custo: 3.0 },
+            { nome: 'Tomate', categoria: 'Verduras', cal: 18, prot: 0.9, carbo: 3.9, gord: 0.2, custo: 5.0 },
+            { nome: 'Abóbora', categoria: 'Verduras', cal: 26, prot: 1, carbo: 6.5, gord: 0.1, custo: 3.5 },
+            { nome: 'Beterraba', categoria: 'Verduras', cal: 43, prot: 1.6, carbo: 10, gord: 0.2, custo: 4.5 },
+            { nome: 'Cebola', categoria: 'Verduras', cal: 40, prot: 1.1, carbo: 9.3, gord: 0.1, custo: 3.0 },
+            { nome: 'Alho', categoria: 'Verduras', cal: 149, prot: 6.4, carbo: 33, gord: 0.5, custo: 20.0 },
+            { nome: 'Amendoim', categoria: 'Oleaginosas', cal: 567, prot: 25.8, carbo: 16, gord: 49, custo: 8.0 },
+            { nome: 'Castanha de Caju', categoria: 'Oleaginosas', cal: 553, prot: 18, carbo: 30, gord: 44, custo: 35.0 },
+            { nome: 'Azeite de Oliva', categoria: 'Óleos', cal: 884, prot: 0, carbo: 0, gord: 100, custo: 40.0 },
+            { nome: 'Óleo de Soja', categoria: 'Óleos', cal: 884, prot: 0, carbo: 0, gord: 100, custo: 6.0 },
+            { nome: 'Manteiga', categoria: 'Laticínios', cal: 717, prot: 0.9, carbo: 0.1, gord: 81, custo: 25.0 },
+            { nome: 'Margarina', categoria: 'Laticínios', cal: 717, prot: 0.5, carbo: 0.3, gord: 80, custo: 10.0 },
+        ];
+
+        // ==================== ESTADO GLOBAL ====================
+        let usuarioDados = null;
+        let examesAnalisados = null;
+        let planoGerado = null;
+
+        // ==================== FUNÇÕES DE STATUS ====================
+        function mostrarStatus(mensagem) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensagem;
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+        }
+
+        // ==================== AUTENTICAÇÃO E CARREGAMENTO INICIAL ====================
+        async function autenticarAnonimo() {
+            try {
+                const userCredential = await auth.signInAnonymously();
+                currentUser = userCredential.user;
+                console.log('Autenticado como', currentUser.uid);
+                await carregarDadosUsuario();
+            } catch (error) {
+                console.error('Erro na autenticação:', error);
+                mostrarStatus('Erro na autenticação.');
+            }
+        }
+
+        async function carregarDadosUsuario() {
+            if (!currentUser) return;
+            try {
+                const docRef = db.collection('users').doc(currentUser.uid);
+                const docSnap = await docRef.get();
+                if (docSnap.exists) {
+                    const data = docSnap.data();
+                    // Preencher formulário
+                    if (data.nome) document.getElementById('nome').value = data.nome;
+                    if (data.sexo) document.getElementById('sexo').value = data.sexo;
+                    if (data.idade) document.getElementById('idade').value = data.idade;
+                    if (data.peso) document.getElementById('peso').value = data.peso;
+                    if (data.altura) document.getElementById('altura').value = data.altura;
+                    if (data.atividade) document.getElementById('atividade').value = data.atividade;
+                    if (data.objetivo) document.getElementById('objetivo').value = data.objetivo;
+                    if (data.restricoes) document.getElementById('restricoes').value = data.restricoes;
+
+                    // Dados calculados
+                    if (data.tmb && data.get && data.caloriasAlvo) {
+                        usuarioDados = {
+                            nome: data.nome || 'Usuário',
+                            sexo: data.sexo,
+                            idade: data.idade,
+                            peso: data.peso,
+                            altura: data.altura,
+                            atividade: data.atividade,
+                            objetivo: data.objetivo,
+                            restricoes: data.restricoes,
+                            tmb: data.tmb,
+                            get: data.get,
+                            caloriasAlvo: data.caloriasAlvo,
+                            protGramas: data.protGramas,
+                            gordGramas: data.gordGramas,
+                            carboGramas: data.carboGramas,
+                            protGramaKg: data.protGramaKg,
+                            gordPct: data.gordPct
+                        };
+                        renderizarResultados();
+                    }
+
+                    // Plano alimentar
+                    if (data.planoHtml) {
+                        document.getElementById('planoContent').innerHTML = data.planoHtml;
+                        document.getElementById('btnExportar').style.display = 'inline-flex';
+                        planoGerado = { html: data.planoHtml, ajustes: data.ajustes || [] };
+                    }
+                    if (data.alimentosResumo) {
+                        document.getElementById('alimentosResumo').innerHTML = data.alimentosResumo;
+                    }
+
+                    // Exames
+                    if (data.exames && data.exames.length > 0) {
+                        examesAnalisados = data.exames;
+                        const idMap = {
+                            'Hemoglobina': 'hemoglobina',
+                            'Ferritina': 'ferritina',
+                            'Vitamina D': 'vitaminaD',
+                            'Vitamina B12': 'vitaminaB12',
+                            'Glicose em Jejum': 'glicose',
+                            'Hemoglobina Glicada': 'hemoglobinaGlicada',
+                            'Colesterol Total': 'colesterolTotal',
+                            'HDL': 'hdl',
+                            'LDL': 'ldl',
+                            'Triglicerídeos': 'triglicerideos',
+                            'TSH': 'tsh',
+                            'Creatinina': 'creatinina'
+                        };
+                        data.exames.forEach(exame => {
+                            const id = idMap[exame.nome];
+                            if (id) document.getElementById(id).value = exame.valor;
+                        });
+                        renderizarAnaliseExames(examesAnalisados);
+                        document.getElementById('examesContainer').style.display = 'block';
+                    }
+
+                    // Chat
+                    if (data.mensagens && data.mensagens.length > 0) {
+                        const chatMessages = document.getElementById('chatMessages');
+                        chatMessages.innerHTML = '';
+                        data.mensagens.forEach(msg => {
+                            const div = document.createElement('div');
+                            div.className = msg.tipo === 'user' ? 'chat-message user' : 'chat-message ai';
+                            div.innerHTML = msg.texto;
+                            chatMessages.appendChild(div);
+                        });
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+
+                    mostrarStatus('Dados carregados com sucesso!');
+                } else {
+                    mostrarStatus('Novo usuário. Preencha seus dados.');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                mostrarStatus('Erro ao carregar dados.');
+            }
+        }
+
+        // ==================== SALVAR DADOS ====================
+        async function salvarDadosUsuario() {
+            if (!currentUser || !usuarioDados) return;
+            try {
+                const dadosParaSalvar = {
+                    nome: usuarioDados.nome,
+                    sexo: usuarioDados.sexo,
+                    idade: usuarioDados.idade,
+                    peso: usuarioDados.peso,
+                    altura: usuarioDados.altura,
+                    atividade: usuarioDados.atividade,
+                    objetivo: usuarioDados.objetivo,
+                    restricoes: usuarioDados.restricoes,
+                    tmb: usuarioDados.tmb,
+                    get: usuarioDados.get,
+                    caloriasAlvo: usuarioDados.caloriasAlvo,
+                    protGramas: usuarioDados.protGramas,
+                    gordGramas: usuarioDados.gordGramas,
+                    carboGramas: usuarioDados.carboGramas,
+                    protGramaKg: usuarioDados.protGramaKg,
+                    gordPct: usuarioDados.gordPct,
+                    exames: examesAnalisados || [],
+                    planoHtml: planoGerado ? planoGerado.html : null,
+                    ajustes: planoGerado ? planoGerado.ajustes : [],
+                    alimentosResumo: document.getElementById('alimentosResumo').innerHTML,
+                    ultimaAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                const docRef = db.collection('users').doc(currentUser.uid);
+                await docRef.set(dadosParaSalvar, { merge: true });
+
+                // Salvar chat
+                const chatMessages = document.getElementById('chatMessages');
+                const mensagens = [];
+                chatMessages.querySelectorAll('.chat-message').forEach(msg => {
+                    const tipo = msg.classList.contains('user') ? 'user' : 'ai';
+                    mensagens.push({ tipo, texto: msg.innerHTML });
+                });
+                if (mensagens.length > 0) {
+                    await docRef.set({ mensagens }, { merge: true });
+                }
+
+                mostrarStatus('Dados salvos com sucesso!');
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                mostrarStatus('Erro ao salvar dados.');
+            }
+        }
+
+        // ==================== NAVEGAÇÃO ====================
+        function irPara(pageName) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + pageName).classList.add('active');
+
+            document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+            const navItem = document.querySelector(`.bottom-nav-item[data-page="${pageName}"]`);
+            if (navItem) navItem.classList.add('active');
+
+            document.getElementById('appContent').scrollTop = 0;
+        }
+
+        // Swipe entre páginas
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const paginas = ['dados', 'exames', 'resultados', 'plano', 'alimentos', 'chat'];
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const threshold = 50;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > threshold) {
+                const currentPage = document.querySelector('.page.active')?.id.replace('page-', '');
+                if (currentPage) {
+                    const currentIndex = paginas.indexOf(currentPage);
+                    if (diff > 0 && currentIndex < paginas.length - 1) {
+                        irPara(paginas[currentIndex + 1]);
+                    } else if (diff < 0 && currentIndex > 0) {
+                        irPara(paginas[currentIndex - 1]);
+                    }
+                }
+            }
+        }
+
+        // ==================== CÁLCULOS ====================
+        async function calcularTudo() {
+            const sexo = document.getElementById('sexo').value;
+            const idade = parseFloat(document.getElementById('idade').value);
+            const peso = parseFloat(document.getElementById('peso').value);
+            const altura = parseFloat(document.getElementById('altura').value);
+            const atividade = parseFloat(document.getElementById('atividade').value);
+            const objetivo = document.getElementById('objetivo').value;
+            const restricoes = document.getElementById('restricoes').value;
+            const nome = document.getElementById('nome').value || 'Usuário';
+
+            if (!idade || !peso || !altura || idade < 10 || peso < 20 || altura < 80) {
+                alert('Por favor, preencha todos os campos com valores válidos.');
+                return;
+            }
+
+            let tmb;
+            if (sexo === 'masculino') {
+                tmb = 10 * peso + 6.25 * altura - 5 * idade + 5;
+            } else {
+                tmb = 10 * peso + 6.25 * altura - 5 * idade - 161;
+            }
+            const get = tmb * atividade;
+
+            let caloriasAlvo;
+            if (objetivo === 'perda') caloriasAlvo = get - 500;
+            else if (objetivo === 'ganho') caloriasAlvo = get + 400;
+            else caloriasAlvo = get;
+
+            let protGramaKg;
+            if (objetivo === 'perda') protGramaKg = 2.0;
+            else if (objetivo === 'ganho') protGramaKg = 1.8;
+            else protGramaKg = 1.4;
+
+            const protGramas = protGramaKg * peso;
+            const protCalorias = protGramas * 4;
+
+            let gordPct;
+            if (objetivo === 'perda') gordPct = 0.25;
+            else if (objetivo === 'ganho') gordPct = 0.30;
+            else gordPct = 0.28;
+            const gordCalorias = caloriasAlvo * gordPct;
+            const gordGramas = gordCalorias / 9;
+
+            const carboCalorias = caloriasAlvo - protCalorias - gordCalorias;
+            const carboGramas = carboCalorias / 4;
+
+            usuarioDados = {
+                nome,
+                sexo,
+                idade,
+                peso,
+                altura,
+                atividade,
+                objetivo,
+                restricoes,
+                tmb: Math.round(tmb),
+                get: Math.round(get),
+                caloriasAlvo: Math.round(caloriasAlvo),
+                protGramas: Math.round(protGramas * 10) / 10,
+                gordGramas: Math.round(gordGramas * 10) / 10,
+                carboGramas: Math.round(carboGramas * 10) / 10,
+                protGramaKg,
+                gordPct,
+                restricoes
+            };
+
+            examesAnalisados = analisarExamesSilencioso();
+            renderizarResultados();
+            gerarPlanoAlimentar();
+            renderizarAlimentosResumo();
+            document.getElementById('btnExportar').style.display = 'inline-flex';
+
+            // Salvar no Firebase
+            await salvarDadosUsuario();
+        }
+
+        function resetForm() {
+            document.getElementById('dadosForm').reset();
+            document.getElementById('nome').value = '';
+            document.getElementById('idade').value = 30;
+            document.getElementById('peso').value = 70;
+            document.getElementById('altura').value = 170;
+            document.getElementById('atividade').value = 1.375;
+            document.getElementById('objetivo').value = 'manutencao';
+            document.getElementById('restricoes').value = 'nenhuma';
+            usuarioDados = null;
+            examesAnalisados = null;
+            planoGerado = null;
+            document.getElementById('resultadosContent').innerHTML = '<p style="color: var(--text-light);">Preencha seus dados na aba "Dados".</p>';
+            document.getElementById('planoContent').innerHTML = '<p style="color: var(--text-light);">Gere sua dieta na aba "Dados".</p>';
+            document.getElementById('alimentosResumo').innerHTML = '';
+            document.getElementById('examesResultado').innerHTML = '';
+            document.getElementById('btnExportar').style.display = 'none';
+            mostrarStatus('Formulário limpo.');
+        }
+
+        // ==================== EXAMES ====================
+        function toggleExames(hasExames) {
+            const container = document.getElementById('examesContainer');
+            if (hasExames) {
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+                ['hemoglobina', 'ferritina', 'vitaminaD', 'vitaminaB12', 'glicose', 'hemoglobinaGlicada',
+                    'colesterolTotal', 'hdl', 'ldl', 'triglicerideos', 'tsh', 'creatinina'
+                ].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('examesResultado').innerHTML = '';
+                examesAnalisados = [];
+                if (usuarioDados) salvarDadosUsuario();
+            }
+        }
+
+        async function analisarExames() {
+            const resultado = analisarExamesSilencioso();
+            if (!resultado || resultado.length === 0) {
+                document.getElementById('examesResultado').innerHTML = '<p style="color: var(--text-light);">Nenhum exame preenchido.</p>';
+                return;
+            }
+            renderizarAnaliseExames(resultado);
+            // Salvar no Firebase se houver usuário
+            if (usuarioDados) await salvarDadosUsuario();
+        }
+
+        function analisarExamesSilencioso() {
+            const exames = [];
+            const refs = {
+                hemoglobina: { nome: 'Hemoglobina', min: 12, max: 16, unidade: 'g/dL' },
+                ferritina: { nome: 'Ferritina', min: 15, max: 150, unidade: 'ng/mL' },
+                vitaminaD: { nome: 'Vitamina D', min: 30, max: 60, unidade: 'ng/mL' },
+                vitaminaB12: { nome: 'Vitamina B12', min: 200, max: 900, unidade: 'pg/mL' },
+                glicose: { nome: 'Glicose em Jejum', min: 70, max: 99, unidade: 'mg/dL' },
+                hemoglobinaGlicada: { nome: 'Hemoglobina Glicada', min: 4, max: 5.7, unidade: '%' },
+                colesterolTotal: { nome: 'Colesterol Total', min: 100, max: 190, unidade: 'mg/dL' },
+                hdl: { nome: 'HDL', min: 40, max: 100, unidade: 'mg/dL' },
+                ldl: { nome: 'LDL', min: 50, max: 130, unidade: 'mg/dL' },
+                triglicerideos: { nome: 'Triglicerídeos', min: 50, max: 150, unidade: 'mg/dL' },
+                tsh: { nome: 'TSH', min: 0.4, max: 4.0, unidade: 'mUI/L' },
+                creatinina: { nome: 'Creatinina', min: 0.6, max: 1.2, unidade: 'mg/dL' },
+            };
+            for (const [id, ref] of Object.entries(refs)) {
+                const valor = document.getElementById(id)?.value;
+                if (valor && !isNaN(parseFloat(valor))) {
+                    const v = parseFloat(valor);
+                    let status = 'normal';
+                    if (v < ref.min) status = 'baixo';
+                    else if (v > ref.max) status = 'alto';
+                    exames.push({ ...ref, valor: v, status });
+                }
+            }
+            return exames;
+        }
+
+        function renderizarAnaliseExames(exames) {
+            let html = '<h3 style="font-size: 1rem; margin-bottom: 10px;">📋 Análise dos Exames</h3>';
+            exames.forEach(e => {
+                let cls = 'normal';
+                let icon = '✅';
+                if (e.status === 'baixo') { cls = 'info'; icon = '⬇️'; }
+                if (e.status === 'alto') { cls = 'danger'; icon = '⬆️'; }
+                if (e.status === 'normal') { cls = 'normal'; icon = '✅'; }
+                html += `<div class="exam-alert ${cls}">
+                    ${icon} <strong>${e.nome}:</strong> ${e.valor} ${e.unidade} 
+                    (${e.min}-${e.max}) - ${e.status === 'normal' ? 'Ideal' : e.status === 'baixo' ? 'Abaixo' : 'Acima'}
+                </div>`;
+            });
+            html += '<p style="margin-top: 10px; font-size: 0.8rem; color: var(--text-secondary);">💡 A IA ajustará a dieta com base nesses resultados.</p>';
+            document.getElementById('examesResultado').innerHTML = html;
+        }
+
+        // ==================== RESULTADOS ====================
+        function renderizarResultados() {
+            if (!usuarioDados) return;
+            const d = usuarioDados;
+            const objetoTxt = d.objetivo === 'perda' ? 'Perda de Peso' : d.objetivo === 'ganho' ? 'Ganho de Massa' : 'Manutenção';
+
+            let html = `
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;">
+                    <span class="badge badge-green">👤 ${d.nome}</span>
+                    <span class="badge badge-blue">${objetivoTxt}</span>
+                    ${d.restricoes !== 'nenhuma' ? `<span class="badge badge-orange">⚠️ ${d.restricoes}</span>` : ''}
+                </div>
+                <div class="result-grid">
+                    <div class="result-card">
+                        <div class="value">${d.tmb}</div>
+                        <div class="label">🔥 TMB</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="value">${d.get}</div>
+                        <div class="label">⚡ GET</div>
+                    </div>
+                    <div class="result-card accent">
+                        <div class="value">${d.caloriasAlvo}</div>
+                        <div class="label">🎯 Alvo</div>
+                    </div>
+                </div>
+                <div class="result-grid">
+                    <div class="result-card" style="background:#e3f2fd; border-color:#64b5f6;">
+                        <div class="value" style="color:#1565c0;">${d.protGramas}g</div>
+                        <div class="label">🥩 Proteínas</div>
+                    </div>
+                    <div class="result-card" style="background:#fff3e0; border-color:#ffb74d;">
+                        <div class="value" style="color:#e65100;">${d.carboGramas}g</div>
+                        <div class="label">🍚 Carboidratos</div>
+                    </div>
+                    <div class="result-card" style="background:#fce4ec; border-color:#f48fb1;">
+                        <div class="value" style="color:#c62828;">${d.gordGramas}g</div>
+                        <div class="label">🥑 Gorduras</div>
+                    </div>
+                </div>
+                <div style="margin-top: 16px;">
+                    <h3 style="font-size: 0.95rem; margin-bottom: 10px;">📈 Distribuição Calórica</h3>
+                    <div style="margin-bottom: 6px;">
+                        <span style="font-size: 0.8rem;">Proteínas: ${Math.round(d.protGramas * 4)} kcal</span>
+                        <div class="progress-bar"><div class="fill" style="width: ${(d.protGramas * 4 / d.caloriasAlvo) * 100}%;"></div></div>
+                    </div>
+                    <div style="margin-bottom: 6px;">
+                        <span style="font-size: 0.8rem;">Carboidratos: ${Math.round(d.carboGramas * 4)} kcal</span>
+                        <div class="progress-bar"><div class="fill warning" style="width: ${(d.carboGramas * 4 / d.caloriasAlvo) * 100}%;"></div></div>
+                    </div>
+                    <div style="margin-bottom: 6px;">
+                        <span style="font-size: 0.8rem;">Gorduras: ${Math.round(d.gordGramas * 9)} kcal</span>
+                        <div class="progress-bar"><div class="fill danger" style="width: ${(d.gordGramas * 9 / d.caloriasAlvo) * 100}%;"></div></div>
+                    </div>
+                </div>
+                <p style="margin-top: 12px; font-size: 0.8rem; color: var(--text-secondary);">📐 Mifflin-St Jeor | Atividade: ${d.atividade}</p>
+            `;
+            document.getElementById('resultadosContent').innerHTML = html;
+        }
+
+        // ==================== GERAR PLANO ALIMENTAR ====================
+        function gerarPlanoAlimentar() {
+            if (!usuarioDados) return;
+            const d = usuarioDados;
+            let ajustes = [];
+
+            if (examesAnalisados && examesAnalisados.length > 0) {
+                examesAnalisados.forEach(e => {
+                    if (e.status === 'baixo' && e.nome === 'Ferritina') ajustes.push('aumentar ferro (feijão, carne, folhas verdes)');
+                    if (e.status === 'baixo' && e.nome === 'Hemoglobina') ajustes.push('incluir ferro e vitamina C');
+                    if (e.status === 'baixo' && e.nome === 'Vitamina D') ajustes.push('exposição solar e alimentos com vitamina D');
+                    if (e.status === 'baixo' && e.nome === 'Vitamina B12') ajustes.push('fontes de B12 (ovos, carnes, laticínios)');
+                    if (e.status === 'alto' && e.nome === 'Glicose em Jejum') ajustes.push('reduzir açúcares simples');
+                    if (e.status === 'alto' && e.nome === 'Colesterol Total') ajustes.push('reduzir gorduras saturadas');
+                    if (e.status === 'alto' && e.nome === 'LDL') ajustes.push('priorizar gorduras insaturadas');
+                    if (e.status === 'alto' && e.nome === 'Triglicerídeos') ajustes.push('reduzir carboidratos refinados');
+                    if (e.status === 'baixo' && e.nome === 'HDL') ajustes.push('aumentar atividade aeróbica');
+                    if (e.status === 'alto' && e.nome === 'TSH') ajustes.push('avaliar tireoide');
+                    if (e.status === 'baixo' && e.nome === 'TSH') ajustes.push('avaliar tireoide');
+                    if (e.status === 'alto' && e.nome === 'Creatinina') ajustes.push('moderar proteínas, hidratar');
+                });
+            }
+
+            if (d.restricoes === 'vegetariano') ajustes.push('proteínas de ovos, laticínios, leguminosas');
+            if (d.restricoes === 'vegano') ajustes.push('apenas proteínas vegetais');
+            if (d.restricoes === 'intolerancia-lactose') ajustes.push('evitar leite e derivados');
+            if (d.restricoes === 'intolerancia-gluten') ajustes.push('evitar trigo, cevada, centeio');
+            if (d.restricoes === 'diabetes') ajustes.push('baixo índice glicêmico');
+            if (d.restricoes === 'hipertensao') ajustes.push('reduzir sódio');
+            if (d.restricoes === 'colesterol-alto') ajustes.push('reduzir gorduras saturadas');
+
+            const calAlvo = d.caloriasAlvo;
+            const protGramas = d.protGramas;
+            const carboGramas = d.carboGramas;
+            const gordGramas = d.gordGramas;
+
+            const refeicoes = [
+                { nome: 'Café da Manhã', pct: 0.22, emoji: '☀️' },
+                { nome: 'Lanche da Manhã', pct: 0.10, emoji: '🍌' },
+                { nome: 'Almoço', pct: 0.30, emoji: '🍛' },
+                { nome: 'Lanche da Tarde', pct: 0.13, emoji: '🥪' },
+                { nome: 'Jantar', pct: 0.25, emoji: '🍲' },
+            ];
+
+            let protAlimentos = [];
+            let carboAlimentos = [];
+            let gordAlimentos = [];
+
+            const restricao = d.restricoes;
+
+            if (restricao === 'vegano') {
+                protAlimentos = ['Feijão Carioca', 'Lentilha', 'Grão de Bico', 'Amendoim'];
+                carboAlimentos = ['Arroz Integral', 'Batata Doce', 'Aveia em Flocos', 'Cuscuz de Milho', 'Tapioca (goma)'];
+                gordAlimentos = ['Azeite de Oliva', 'Castanha de Caju', 'Amendoim'];
+            } else if (restricao === 'vegetariano') {
+                protAlimentos = ['Ovo de Galinha', 'Feijão Carioca', 'Lentilha', 'Queijo Minas', 'Iogurte Natural'];
+                carboAlimentos = ['Arroz Branco', 'Arroz Integral', 'Batata Doce', 'Aveia em Flocos', 'Pão Integral', 'Cuscuz de Milho'];
+                gordAlimentos = ['Azeite de Oliva', 'Castanha de Caju', 'Manteiga', 'Amendoim'];
+            } else if (restricao === 'intolerancia-lactose') {
+                protAlimentos = ['Peito de Frango', 'Ovo de Galinha', 'Sardinha em Lata', 'Feijão Carioca', 'Carne Moída (patinho)'];
+                carboAlimentos = ['Arroz Branco', 'Batata Doce', 'Aveia em Flocos', 'Cuscuz de Milho', 'Tapioca (goma)', 'Macarrão'];
+                gordAlimentos = ['Azeite de Oliva', 'Castanha de Caju', 'Óleo de Soja', 'Amendoim'];
+            } else if (restricao === 'intolerancia-gluten') {
+                protAlimentos = ['Peito de Frango', 'Ovo de Galinha', 'Sardinha em Lata', 'Feijão Carioca', 'Carne Moída (patinho)'];
+                carboAlimentos = ['Arroz Branco', 'Batata Doce', 'Mandioca (aipim)', 'Cuscuz de Milho', 'Tapioca (goma)'];
+                gordAlimentos = ['Azeite de Oliva', 'Castanha de Caju', 'Manteiga', 'Óleo de Soja'];
+            } else if (restricao === 'diabetes') {
+                protAlimentos = ['Peito de Frango', 'Ovo de Galinha', 'Sardinha em Lata', 'Feijão Carioca', 'Carne Moída (patinho)'];
+                carboAlimentos = ['Batata Doce', 'Aveia em Flocos', 'Arroz Integral', 'Mandioca (aipim)'];
+                gordAlimentos = ['Azeite de Oliva', 'Castanha de Caju', 'Amendoim'];
+            } else if (restricao === 'hipertensao') {
+                protAlimentos = ['Peito de Frango', 'Ovo de Galinha', 'Sardinha em Lata', 'Feijão Carioca'];
+                carboAlimentos = ['Arroz Branco', 'Batata Doce', 'Aveia em Flocos', 'Macarrão', 'Cuscuz de Milho'];
+                gordAlimentos = ['Azeite de Oliva', 'Castanha de Caju'];
+            } else if (restricao === 'colesterol-alto') {
+                protAlimentos = ['Peito de Frango', 'Sardinha em Lata', 'Feijão Carioca', 'Lentilha'];
+                carboAlimentos = ['Arroz Integral', 'Aveia em Flocos', 'Batata Doce', 'Cuscuz de Milho'];
+                gordAlimentos = ['Azeite de Oliva', 'Castanha de Caju', 'Amendoim'];
+            } else {
+                protAlimentos = ['Peito de Frango', 'Ovo de Galinha', 'Sardinha em Lata', 'Carne Moída (patinho)', 'Feijão Carioca',
+                    'Sobrecoxa de Frango'
+                ];
+                carboAlimentos = ['Arroz Branco', 'Arroz Integral', 'Batata Doce', 'Aveia em Flocos', 'Pão Integral', 'Cuscuz de Milho',
+                    'Macarrão', 'Tapioca (goma)'
+                ];
+                gordAlimentos = ['Azeite de Oliva', 'Castanha de Caju', 'Manteiga', 'Amendoim'];
+            }
+
+            if (ajustes.some(a => a.includes('ferro'))) {
+                protAlimentos = ['Carne Moída (patinho)', 'Feijão Carioca', 'Feijão Preto', 'Ovo de Galinha', 'Peito de Frango'];
+            }
+            if (ajustes.some(a => a.includes('vitamina D'))) {
+                protAlimentos = ['Sardinha em Lata', 'Ovo de Galinha', 'Peito de Frango'];
+            }
+            if (ajustes.some(a => a.includes('colesterol') || a.includes('LDL') || a.includes('gorduras saturadas'))) {
+                protAlimentos = ['Peito de Frango', 'Sardinha em Lata', 'Feijão Carioca', 'Lentilha'];
+                gordAlimentos = ['Azeite de Oliva', 'Castanha de Caju', 'Amendoim'];
+            }
+            if (ajustes.some(a => a.includes('triglicer'))) {
+                carboAlimentos = carboAlimentos.filter(c => !c.includes('Macarrão') && !c.includes('Tapioca'));
+            }
+
+            function buscarAlimento(nome) {
+                return alimentos.find(a => a.nome === nome);
+            }
+
+            let planoHtml = '';
+
+            refeicoes.forEach(refeicao => {
+                const calRefeicao = calAlvo * refeicao.pct;
+                const protRefeicao = protGramas * refeicao.pct;
+                const carboRefeicao = carboGramas * refeicao.pct;
+                const gordRefeicao = gordGramas * refeicao.pct;
+
+                let sugestoes = [];
+                const protEscolhida = protAlimentos[Math.floor(Math.random() * protAlimentos.length)];
+                const carboEscolhida = carboAlimentos[Math.floor(Math.random() * carboAlimentos.length)];
+                const gordEscolhida = gordAlimentos[Math.floor(Math.random() * gordAlimentos.length)];
+
+                const protData = buscarAlimento(protEscolhida);
+                const carboData = buscarAlimento(carboEscolhida);
+                const gordData = buscarAlimento(gordEscolhida);
+
+                if (protData) {
+                    const qtdProt = Math.max(30, Math.round((protRefeicao / protData.prot) * 100));
+                    sugestoes.push(`${qtdProt}g ${protEscolhida}`);
+                }
+                if (carboData) {
+                    const qtdCarbo = Math.max(50, Math.round((carboRefeicao / carboData.carbo) * 100));
+                    sugestoes.push(`${qtdCarbo}g ${carboEscolhida}`);
+                }
+                if (gordData) {
+                    const qtdGord = Math.max(5, Math.round((gordRefeicao / gordData.gord) * 100));
+                    sugestoes.push(`${qtdGord}g ${gordEscolhida}`);
+                }
+                const verduras = ['Couve Manteiga', 'Alface', 'Tomate', 'Cenoura', 'Brócolis', 'Abóbora'];
+                const verduraEscolhida = verduras[Math.floor(Math.random() * verduras.length)];
+                sugestoes.push(`${verduraEscolhida} à vontade`);
+
+                if (refeicao.nome.includes('Lanche')) {
+                    const lancheAlimentos = ['Banana Prata', 'Maçã', 'Aveia em Flocos', 'Pão Integral', 'Ovo de Galinha', 'Iogurte Natural',
+                        'Amendoim', 'Mamão Papaia'
+                    ];
+                    const lanche1 = lancheAlimentos[Math.floor(Math.random() * lancheAlimentos.length)];
+                    const lanche2 = lancheAlimentos[Math.floor(Math.random() * lancheAlimentos.length)];
+                    const lancheData1 = buscarAlimento(lanche1);
+                    const lancheData2 = buscarAlimento(lanche2);
+                    sugestoes = [];
+                    if (lancheData1) sugestoes.push(`${Math.max(40, Math.round(calRefeicao * 0.5 / lancheData1.cal * 100))}g ${lanche1}`);
+                    if (lancheData2 && lanche1 !== lanche2) sugestoes.push(
+                        `${Math.max(40, Math.round(calRefeicao * 0.5 / lancheData2.cal * 100))}g ${lanche2}`);
+                    sugestoes.push('Água ou chá sem açúcar');
+                }
+
+                planoHtml += `
+                    <div class="meal-card">
+                        <div class="meal-name">${refeicao.emoji} ${refeicao.nome}</div>
+                        <div class="meal-details">${sugestoes.join(' • ')}</div>
+                        <div class="meal-macros">
+                            <span>🔥 ${Math.round(calRefeicao)} kcal</span>
+                            <span>🥩 ${Math.round(protRefeicao)}g prot</span>
+                            <span>🍚 ${Math.round(carboRefeicao)}g carbo</span>
+                            <span>🥑 ${Math.round(gordRefeicao)}g gord</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const aguaLitros = (d.peso * 0.035).toFixed(1);
+            planoHtml += `
+                <div style="margin-top: 12px; padding: 12px; background: var(--info-light); border-radius: var(--radius-sm); border-left: 4px solid var(--info); font-size:0.9rem;">
+                    <strong>💧 Hidratação:</strong> Beba <strong>${aguaLitros} litros</strong> de água por dia.
+                </div>
+            `;
+
+            if (ajustes.length > 0) {
+                planoHtml += `
+                    <div style="margin-top: 12px; padding: 12px; background: var(--warning-light); border-radius: var(--radius-sm); border-left: 4px solid var(--warning); font-size:0.85rem;">
+                        <strong>🧠 Ajustes da IA:</strong>
+                        <ul style="margin-top: 6px; padding-left: 18px;">
+                            ${ajustes.map(a => `<li>${a}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            planoHtml += `
+                <div style="margin-top: 12px; padding: 12px; background: var(--primary-lighter); border-radius: var(--radius-sm); border-left: 4px solid var(--primary); font-size:0.85rem;">
+                    <strong>💰 Dicas de Economia:</strong>
+                    <ul style="margin-top: 6px; padding-left: 18px;">
+                        <li>Compre frutas e verduras da estação.</li>
+                        <li>Feijão + arroz = proteína completa e barata.</li>
+                        <li>Ovo é a proteína de melhor custo-benefício.</li>
+                        <li>Feiras livres no fim da feira têm descontos.</li>
+                    </ul>
+                </div>
+            `;
+
+            planoGerado = { html: planoHtml, ajustes };
+            document.getElementById('planoContent').innerHTML = planoHtml;
+            document.getElementById('btnExportar').style.display = 'inline-flex';
+        }
+
+        function renderizarAlimentosResumo() {
+            if (!usuarioDados) return;
+            const d = usuarioDados;
+            const restricao = d.restricoes;
+            let alimList = [];
+            if (restricao === 'vegano') alimList = ['Feijão Carioca', 'Lentilha', 'Grão de Bico', 'Arroz Integral', 'Batata Doce', 'Aveia',
+                'Cuscuz', 'Amendoim', 'Castanha de Caju', 'Banana', 'Mamão', 'Couve'
+            ];
+            else if (restricao === 'vegetariano') alimList = ['Ovo', 'Feijão', 'Lentilha', 'Queijo Minas', 'Iogurte', 'Arroz', 'Batata Doce',
+                'Pão Integral', 'Aveia', 'Banana', 'Castanha'
+            ];
+            else if (restricao === 'intolerancia-lactose') alimList = ['Frango', 'Ovo', 'Sardinha', 'Feijão', 'Arroz', 'Batata Doce',
+                'Cuscuz', 'Tapioca', 'Azeite', 'Banana', 'Mamão'
+            ];
+            else if (restricao === 'intolerancia-gluten') alimList = ['Frango', 'Ovo', 'Sardinha', 'Feijão', 'Arroz', 'Batata Doce',
+                'Mandioca', 'Cuscuz', 'Tapioca', 'Azeite'
+            ];
+            else if (restricao === 'diabetes') alimList = ['Frango', 'Ovo', 'Sardinha', 'Feijão', 'Batata Doce', 'Aveia', 'Arroz Integral',
+                'Mandioca', 'Azeite', 'Castanha'
+            ];
+            else if (restricao === 'hipertensao') alimList = ['Frango', 'Ovo', 'Sardinha', 'Feijão', 'Arroz', 'Batata Doce', 'Aveia',
+                'Cuscuz', 'Azeite', 'Castanha'
+            ];
+            else if (restricao === 'colesterol-alto') alimList = ['Frango', 'Sardinha', 'Feijão', 'Lentilha', 'Arroz Integral', 'Aveia',
+                'Batata Doce', 'Cuscuz', 'Azeite', 'Castanha'
+            ];
+            else alimList = ['Arroz', 'Feijão', 'Ovo', 'Frango', 'Banana', 'Batata Doce', 'Aveia', 'Cuscuz', 'Sardinha', 'Mandioca', 'Couve',
+                'Laranja', 'Mamão', 'Tomate', 'Cenoura'
+            ];
+
+            const html = alimList.map(a => `<span class="badge badge-green" style="font-size:0.75rem;">${a}</span>`).join(' ');
+            document.getElementById('alimentosResumo').innerHTML = html;
+        }
+
+        // ==================== TABELA DE ALIMENTOS ====================
+        function renderizarTabelaAlimentos() {
+            const tbody = document.getElementById('alimentosBody');
+            tbody.innerHTML = '';
+            alimentos.forEach(a => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${a.nome}</strong> <span class="food-price">(R$${a.custo.toFixed(2)}/kg)</span></td>
+                    <td>${a.categoria}</td>
+                    <td>${a.cal}</td>
+                    <td>${a.prot}</td>
+                    <td>${a.carbo}</td>
+                    <td>${a.gord}</td>
+                    <td>R$ ${a.custo.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==================== CHAT IA ====================
+        async function enviarMensagem() {
+            const input = document.getElementById('chatInput');
+            const mensagem = input.value.trim();
+            if (!mensagem) return;
+
+            const chatMessages = document.getElementById('chatMessages');
+            const userMsg = document.createElement('div');
+            userMsg.className = 'chat-message user';
+            userMsg.textContent = mensagem;
+            chatMessages.appendChild(userMsg);
+
+            const respostaIA = gerarRespostaIA(mensagem);
+            setTimeout(async () => {
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'chat-message ai';
+                aiMsg.innerHTML = respostaIA;
+                chatMessages.appendChild(aiMsg);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                // Salvar chat no Firebase
+                await salvarDadosUsuario();
+            }, 500);
+
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            // Salvar também imediatamente (mensagem do usuário)
+            await salvarDadosUsuario();
+        }
+
+        function gerarRespostaIA(pergunta) {
+            const p = pergunta.toLowerCase();
+            const temDados = usuarioDados !== null;
+
+            if (p.includes('emagrecer') || p.includes('perder peso') || p.includes('emagrecimento'))
+                return `Para <strong>emagrecer</strong>:\n• Déficit de 300-500 kcal\n• Proteína 2g/kg\n• Carboidratos complexos\n• Evitar açúcares\n• Beber 35ml/kg de água\n${temDados ? `\nSeu alvo: <strong>${usuarioDados.caloriasAlvo} kcal</strong>` : '\nPreencha seus dados para personalizar!'}`;
+            if (p.includes('ganhar massa') || p.includes('hipertrofia') || p.includes('músculo') || p.includes('musculo'))
+                return `Para <strong>ganho de massa</strong>:\n• Superávit de 300-500 kcal\n• Proteína 1.6-2.0g/kg\n• Treino de força progressivo\n• Descanso adequado\n${temDados ? `\nSeu alvo seria ~${usuarioDados.caloriasAlvo} kcal` : '\nMe conte seus dados!'}`;
+            if (p.includes('barato') || p.includes('custo') || p.includes('econôm') || p.includes('pobre') || p.includes('dinheiro'))
+                return `🥗 <strong>Alimentos baratos e nutritivos:</strong>\n• Ovo (R$11/kg)\n• Feijão + Arroz\n• Frango (sobrecoxa)\n• Sardinha em lata\n• Banana, mamão\n• Batata doce, mandioca\n• Cuscuz\n• Couve, cenoura\n\n💡 Feiras livres no fim da feira têm descontos!`;
+            if (p.includes('café') || p.includes('cafe') || p.includes('manhã') || p.includes('desjejum'))
+                return `☀️ <strong>Café da manhã barato:</strong>\n• 2 ovos + pão integral + banana\n• Cuscuz com leite + ovo\n• Tapioca com ovo + fruta\n• Aveia com banana\n\nSempre inclua proteína + carboidrato + fruta.`;
+            if (p.includes('almoço') || p.includes('almoco'))
+                return `🍛 <strong>Almoço econômico:</strong>\n• Arroz + feijão + frango + salada\n• Arroz + feijão + ovo + legumes\n• Macarrão com carne moída\n\n💡 Arroz + feijão é proteína completa e barata!`;
+            if (p.includes('jantar') || p.includes('janta'))
+                return `🌙 <strong>Jantar leve:</strong>\n• Sopa de legumes com frango\n• Omelete com verduras\n• Tapioca com queijo\n• Salada de atum\n\nEvite frituras à noite.`;
+            if (p.includes('lanche') || p.includes('snack') || p.includes('tarde'))
+                return `🥪 <strong>Lanches saudáveis:</strong>\n• Banana + pasta de amendoim\n• 2 ovos cozidos\n• Pão integral com queijo\n• Mix de castanhas\n• Iogurte com aveia\n\nPrepare em casa e economize!`;
+            if (p.includes('exame') || p.includes('sangue') || p.includes('ferro') || p.includes('colesterol') || p.includes('glicose') ||
+                p.includes('vitamina'))
+                return `🩸 <strong>Exames de sangue:</strong>\nAdicione seus resultados na aba "Exames". Analisamos hemoglobina, ferritina, vitamina D/B12, glicose, colesterol, TSH, etc.\n${temDados ? 'Seus exames já podem ser analisados!' : 'Preencha os exames para ajustes.'}`;
+            if (p.includes('suplemento') || p.includes('whey') || p.includes('creatina'))
+                return `💊 <strong>Suplementação:</strong>\n• Whey: útil para bater proteína\n• Creatina: comprovada (3-5g/dia)\n• Vitamina D: se houver deficiência\n• Ferro: apenas se anemia\n\n⚠️ Consulte médico antes de suplementar.`;
+            if (p.includes('água') || p.includes('agua') || p.includes('hidrat'))
+                return `💧 <strong>Hidratação:</strong>\n• Recomendação: 35ml/kg\n${temDados ? `• Para você: ${(usuarioDados.peso * 0.035).toFixed(1)} litros/dia` : '• Ex: 70kg → 2.5 litros'}\n• Urina clara = bom sinal\n• Beba água antes das refeições`;
+            if (p.includes('oi') || p.includes('olá') || p.includes('ola') || p.includes('bom dia') || p.includes('boa tarde') || p.includes(
+                    'e aí'))
+                return `👋 Olá! Sou a <strong>NutriIA</strong>. Posso ajudar com dietas, alimentos baratos, exames, treinos e mais. O que deseja?`;
+            if (p.includes('proteína') || p.includes('proteina'))
+                return `🥩 <strong>Proteínas:</strong>\n• Necessidade: 1.2-2.0g/kg\n${temDados ? `• Para você: ${usuarioDados.protGramas}g/dia` : '• Ex: 70kg → 84-140g'}\n\nFontes baratas: ovo, frango, feijão, sardinha, carne moída.\nCombine arroz + feijão para proteína completa!`;
+            if (p.includes('carboidrato') || p.includes('carbo'))
+                return `🍚 <strong>Carboidratos:</strong>\n${temDados ? `Sua meta: ${usuarioDados.carboGramas}g/dia` : 'Meta: 3-5g/kg'}\nOpções baratas: arroz, batata doce, aveia, cuscuz, mandioca.\nPrefira complexos e evite açúcares.`;
+            if (p.includes('gordura') || p.includes('gorduras'))
+                return `🥑 <strong>Gorduras:</strong>\n${temDados ? `Sua meta: ${usuarioDados.gordGramas}g/dia` : 'Meta: 0.8-1g/kg'}\nFontes boas: azeite, castanha, amendoim, sardinha.\nEvite frituras e trans.`;
+            if (p.includes('dieta') || p.includes('plano') || p.includes('cardápio') || p.includes('montar'))
+                return `🍽️ Para montar sua dieta:\n1. Preencha "Dados"\n2. Clique em "Calcular"\n3. Veja em "Resultados"\n4. Plano gerado em "Plano"\n5. Adicione exames para ajustes\n${temDados ? '✅ Você já tem dados!' : 'Comece preenchendo seus dados!'}`;
+            if (p.includes('treino') || p.includes('exercício') || p.includes('exercicio') || p.includes('muscula'))
+                return `🏋️ <strong>Nutrição esportiva:</strong>\n• Pré-treino: banana, pão com mel\n• Pós-treino: frango + arroz, ovo + batata\n• Hidrate-se bem\n• Creatina pode ajudar\n\nAlimentação é 70% do resultado!`;
+            return `🤔 Sobre "${pergunta}", posso ajudar com:\n• Emagrecimento\n• Ganho de massa\n• Alimentos baratos\n• Exames\n• Proteínas, carboidratos, gorduras\n• Suplementação\n• Refeições específicas\n${temDados ? '✅ Você já tem dados cadastrados!' : '💡 Preencha seus dados na aba "Dados".'}`;
+        }
+
+        // ==================== EXPORTAR PLANO ====================
+        function exportarPlano() {
+            if (!planoGerado) {
+                alert('Gere o plano alimentar primeiro.');
+                return;
+            }
+            const dados = usuarioDados;
+            let texto = `===== PLANO ALIMENTAR NUTRIIA =====\n\n`;
+            texto += `Nome: ${dados.nome}\n`;
+            texto += `Objetivo: ${dados.objetivo}\n`;
+            texto += `Calorias Alvo: ${dados.caloriasAlvo} kcal\n`;
+            texto += `Proteínas: ${dados.protGramas}g | Carboidratos: ${dados.carboGramas}g | Gorduras: ${dados.gordGramas}g\n\n`;
+            texto += `====================================\n\n`;
+            texto += `Use as abas do app para ver o plano completo com refeições detalhadas.\n`;
+
+            const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'plano_alimentar_nutriia.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ==================== INICIALIZAÇÃO ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            renderizarTabelaAlimentos();
+            autenticarAnonimo();
+        });
+    </script>
+</body>
+</html>
