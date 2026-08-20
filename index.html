@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>NutriIA - Nutrição Inteligente</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
     <style>
         :root {
             --primary: #2e7d32;
@@ -59,7 +55,6 @@
             position: relative;
         }
 
-        /* HEADER */
         .header {
             background: linear-gradient(135deg, var(--primary-dark), var(--primary));
             color: #fff;
@@ -101,7 +96,6 @@
             font-weight: 400;
         }
 
-        /* MAIN CONTAINER (SCROLLABLE PAGES) */
         .app-content {
             flex: 1;
             overflow-y: auto;
@@ -133,7 +127,6 @@
             }
         }
 
-        /* BOTTOM NAVIGATION */
         .bottom-nav {
             height: var(--bottom-nav-height);
             background: #fff;
@@ -179,7 +172,6 @@
             transition: transform 0.2s;
         }
 
-        /* CARDS */
         .card {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -214,7 +206,6 @@
             margin-bottom: 14px;
         }
 
-        /* FORM */
         .form-group {
             margin-bottom: 14px;
         }
@@ -259,7 +250,6 @@
             gap: 12px;
         }
 
-        /* BUTTONS */
         .btn {
             padding: 12px 20px;
             border-radius: var(--radius-sm);
@@ -312,7 +302,6 @@
             width: 100%;
         }
 
-        /* RESULTS */
         .result-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -352,7 +341,6 @@
             color: var(--danger);
         }
 
-        /* TABLE (for food bank) */
         .table-wrapper {
             overflow-x: auto;
             margin: 12px 0;
@@ -382,7 +370,6 @@
             background: #f9fbe9;
         }
 
-        /* CHAT */
         .chat-container {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -458,7 +445,6 @@
             transform: scale(0.95);
         }
 
-        /* EXAM ALERT */
         .exam-alert {
             padding: 10px 12px;
             border-radius: var(--radius-sm);
@@ -490,7 +476,6 @@
             border-left: 4px solid var(--info);
         }
 
-        /* MEAL PLAN */
         .meal-card {
             border: 2px solid var(--border);
             border-radius: var(--radius-sm);
@@ -530,7 +515,6 @@
             font-weight: 500;
         }
 
-        /* PROGRESS BAR */
         .progress-bar {
             background: #e0e0e0;
             border-radius: 10px;
@@ -551,7 +535,6 @@
             background: linear-gradient(90deg, #ef5350, var(--danger));
         }
 
-        /* BADGE */
         .badge {
             display: inline-block;
             padding: 3px 10px;
@@ -585,7 +568,6 @@
             font-style: italic;
         }
 
-        /* Scrollbar estilizado */
         ::-webkit-scrollbar {
             width: 4px;
             height: 4px;
@@ -598,7 +580,6 @@
             border-radius: 4px;
         }
 
-        /* Ajustes para telas muito pequenas */
         @media (max-width: 360px) {
             .form-row,
             .form-row-3 {
@@ -621,24 +602,6 @@
             .chat-message {
                 max-width: 95%;
             }
-        }
-
-        /* Toast */
-        #toast {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-size: 0.85rem;
-            z-index: 999;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            white-space: nowrap;
         }
     </style>
 </head>
@@ -918,27 +881,7 @@
         </button>
     </nav>
 
-    <!-- TOAST -->
-    <div id="toast"></div>
-
     <script>
-        // ==================== CONFIGURAÇÃO FIREBASE ====================
-        const firebaseConfig = {
-            apiKey: "AIzaSyBelOdopLL9Fq_ekrL_u6Y602h8GbQA5Mc",
-            authDomain: "nutriia-d39b2.firebaseapp.com",
-            projectId: "nutriia-d39b2",
-            storageBucket: "nutriia-d39b2.firebasestorage.app",
-            messagingSenderId: "998740161295",
-            appId: "1:998740161295:web:ee69614315af7e5a81447a",
-            measurementId: "G-DDK1N5MYXX"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        let currentUser = null;
-
         // ==================== BASE DE DADOS DE ALIMENTOS ====================
         const alimentos = [
             { nome: 'Arroz Branco', categoria: 'Cereais', cal: 130, prot: 2.7, carbo: 28, gord: 0.3, custo: 5.0 },
@@ -995,187 +938,108 @@
         let examesAnalisados = null;
         let planoGerado = null;
 
-        // ==================== FUNÇÕES DE STATUS ====================
-        function mostrarStatus(mensagem) {
-            const toast = document.getElementById('toast');
-            toast.textContent = mensagem;
-            toast.style.opacity = '1';
-            setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+        // ==================== PERSISTÊNCIA (localStorage) ====================
+        function salvarDados() {
+            const dados = {
+                usuario: usuarioDados,
+                exames: examesAnalisados,
+                planoGerado: planoGerado,
+                camposDados: {
+                    nome: document.getElementById('nome')?.value || '',
+                    sexo: document.getElementById('sexo')?.value || 'masculino',
+                    idade: document.getElementById('idade')?.value || '30',
+                    peso: document.getElementById('peso')?.value || '70',
+                    altura: document.getElementById('altura')?.value || '170',
+                    atividade: document.getElementById('atividade')?.value || '1.375',
+                    objetivo: document.getElementById('objetivo')?.value || 'manutencao',
+                    restricoes: document.getElementById('restricoes')?.value || 'nenhuma'
+                },
+                camposExames: obterCamposExames(),
+                ultimaPagina: document.querySelector('.page.active')?.id.replace('page-', '') || 'dados',
+                chatMessages: document.getElementById('chatMessages')?.innerHTML || ''
+            };
+            localStorage.setItem('nutriia_dados', JSON.stringify(dados));
         }
 
-        // ==================== AUTENTICAÇÃO E CARREGAMENTO INICIAL ====================
-        async function autenticarAnonimo() {
+        function carregarDados() {
+            const json = localStorage.getItem('nutriia_dados');
+            if (!json) return;
             try {
-                const userCredential = await auth.signInAnonymously();
-                currentUser = userCredential.user;
-                console.log('Autenticado como', currentUser.uid);
-                await carregarDadosUsuario();
-            } catch (error) {
-                console.error('Erro na autenticação:', error);
-                mostrarStatus('Erro na autenticação.');
-            }
-        }
-
-        async function carregarDadosUsuario() {
-            if (!currentUser) return;
-            try {
-                const docRef = db.collection('users').doc(currentUser.uid);
-                const docSnap = await docRef.get();
-                if (docSnap.exists) {
-                    const data = docSnap.data();
-                    // Preencher formulário
-                    if (data.nome) document.getElementById('nome').value = data.nome;
-                    if (data.sexo) document.getElementById('sexo').value = data.sexo;
-                    if (data.idade) document.getElementById('idade').value = data.idade;
-                    if (data.peso) document.getElementById('peso').value = data.peso;
-                    if (data.altura) document.getElementById('altura').value = data.altura;
-                    if (data.atividade) document.getElementById('atividade').value = data.atividade;
-                    if (data.objetivo) document.getElementById('objetivo').value = data.objetivo;
-                    if (data.restricoes) document.getElementById('restricoes').value = data.restricoes;
-
-                    // Dados calculados
-                    if (data.tmb && data.get && data.caloriasAlvo) {
-                        usuarioDados = {
-                            nome: data.nome || 'Usuário',
-                            sexo: data.sexo,
-                            idade: data.idade,
-                            peso: data.peso,
-                            altura: data.altura,
-                            atividade: data.atividade,
-                            objetivo: data.objetivo,
-                            restricoes: data.restricoes,
-                            tmb: data.tmb,
-                            get: data.get,
-                            caloriasAlvo: data.caloriasAlvo,
-                            protGramas: data.protGramas,
-                            gordGramas: data.gordGramas,
-                            carboGramas: data.carboGramas,
-                            protGramaKg: data.protGramaKg,
-                            gordPct: data.gordPct
-                        };
-                        renderizarResultados();
-                    }
-
-                    // Plano alimentar
-                    if (data.planoHtml) {
-                        document.getElementById('planoContent').innerHTML = data.planoHtml;
-                        document.getElementById('btnExportar').style.display = 'inline-flex';
-                        planoGerado = { html: data.planoHtml, ajustes: data.ajustes || [] };
-                    }
-                    if (data.alimentosResumo) {
-                        document.getElementById('alimentosResumo').innerHTML = data.alimentosResumo;
-                    }
-
-                    // Exames
-                    if (data.exames && data.exames.length > 0) {
-                        examesAnalisados = data.exames;
-                        const idMap = {
-                            'Hemoglobina': 'hemoglobina',
-                            'Ferritina': 'ferritina',
-                            'Vitamina D': 'vitaminaD',
-                            'Vitamina B12': 'vitaminaB12',
-                            'Glicose em Jejum': 'glicose',
-                            'Hemoglobina Glicada': 'hemoglobinaGlicada',
-                            'Colesterol Total': 'colesterolTotal',
-                            'HDL': 'hdl',
-                            'LDL': 'ldl',
-                            'Triglicerídeos': 'triglicerideos',
-                            'TSH': 'tsh',
-                            'Creatinina': 'creatinina'
-                        };
-                        data.exames.forEach(exame => {
-                            const id = idMap[exame.nome];
-                            if (id) document.getElementById(id).value = exame.valor;
-                        });
-                        renderizarAnaliseExames(examesAnalisados);
+                const dados = JSON.parse(json);
+                // Restaurar campos de dados
+                if (dados.camposDados) {
+                    Object.keys(dados.camposDados).forEach(key => {
+                        const el = document.getElementById(key);
+                        if (el) el.value = dados.camposDados[key];
+                    });
+                }
+                // Restaurar campos de exames
+                if (dados.camposExames) {
+                    Object.keys(dados.camposExames).forEach(key => {
+                        const el = document.getElementById(key);
+                        if (el) el.value = dados.camposExames[key];
+                    });
+                    // Se havia exames preenchidos, exibir container
+                    const temExames = Object.values(dados.camposExames).some(v => v !== '' && v !== null && v !== undefined);
+                    if (temExames) {
                         document.getElementById('examesContainer').style.display = 'block';
+                        analisarExamesSilencioso(); // atualiza examesAnalisados
                     }
-
-                    // Chat
-                    if (data.mensagens && data.mensagens.length > 0) {
-                        const chatMessages = document.getElementById('chatMessages');
-                        chatMessages.innerHTML = '';
-                        data.mensagens.forEach(msg => {
-                            const div = document.createElement('div');
-                            div.className = msg.tipo === 'user' ? 'chat-message user' : 'chat-message ai';
-                            div.innerHTML = msg.texto;
-                            chatMessages.appendChild(div);
-                        });
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
-                    }
-
-                    mostrarStatus('Dados carregados com sucesso!');
-                } else {
-                    mostrarStatus('Novo usuário. Preencha seus dados.');
                 }
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
-                mostrarStatus('Erro ao carregar dados.');
+                // Restaurar estado global
+                if (dados.usuario) {
+                    usuarioDados = dados.usuario;
+                    examesAnalisados = dados.exames;
+                    planoGerado = dados.planoGerado;
+                    renderizarResultados();
+                    if (planoGerado) {
+                        document.getElementById('planoContent').innerHTML = planoGerado.html;
+                        document.getElementById('btnExportar').style.display = 'inline-flex';
+                        renderizarAlimentosResumo();
+                    }
+                }
+                // Restaurar chat
+                if (dados.chatMessages) {
+                    document.getElementById('chatMessages').innerHTML = dados.chatMessages;
+                }
+                // Restaurar última página
+                if (dados.ultimaPagina) {
+                    irPara(dados.ultimaPagina);
+                }
+            } catch (e) {
+                console.error('Erro ao carregar dados:', e);
             }
         }
 
-        // ==================== SALVAR DADOS ====================
-        async function salvarDadosUsuario() {
-            if (!currentUser || !usuarioDados) return;
-            try {
-                const dadosParaSalvar = {
-                    nome: usuarioDados.nome,
-                    sexo: usuarioDados.sexo,
-                    idade: usuarioDados.idade,
-                    peso: usuarioDados.peso,
-                    altura: usuarioDados.altura,
-                    atividade: usuarioDados.atividade,
-                    objetivo: usuarioDados.objetivo,
-                    restricoes: usuarioDados.restricoes,
-                    tmb: usuarioDados.tmb,
-                    get: usuarioDados.get,
-                    caloriasAlvo: usuarioDados.caloriasAlvo,
-                    protGramas: usuarioDados.protGramas,
-                    gordGramas: usuarioDados.gordGramas,
-                    carboGramas: usuarioDados.carboGramas,
-                    protGramaKg: usuarioDados.protGramaKg,
-                    gordPct: usuarioDados.gordPct,
-                    exames: examesAnalisados || [],
-                    planoHtml: planoGerado ? planoGerado.html : null,
-                    ajustes: planoGerado ? planoGerado.ajustes : [],
-                    alimentosResumo: document.getElementById('alimentosResumo').innerHTML,
-                    ultimaAtualizacao: firebase.firestore.FieldValue.serverTimestamp()
-                };
+        function obterCamposExames() {
+            const ids = ['hemoglobina', 'ferritina', 'vitaminaD', 'vitaminaB12', 'glicose', 'hemoglobinaGlicada',
+                'colesterolTotal', 'hdl', 'ldl', 'triglicerideos', 'tsh', 'creatinina'
+            ];
+            const campos = {};
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) campos[id] = el.value;
+            });
+            return campos;
+        }
 
-                const docRef = db.collection('users').doc(currentUser.uid);
-                await docRef.set(dadosParaSalvar, { merge: true });
-
-                // Salvar chat
-                const chatMessages = document.getElementById('chatMessages');
-                const mensagens = [];
-                chatMessages.querySelectorAll('.chat-message').forEach(msg => {
-                    const tipo = msg.classList.contains('user') ? 'user' : 'ai';
-                    mensagens.push({ tipo, texto: msg.innerHTML });
-                });
-                if (mensagens.length > 0) {
-                    await docRef.set({ mensagens }, { merge: true });
-                }
-
-                mostrarStatus('Dados salvos com sucesso!');
-            } catch (error) {
-                console.error('Erro ao salvar:', error);
-                mostrarStatus('Erro ao salvar dados.');
-            }
+        // Salvar automaticamente a cada interação importante
+        function salvarComDebounce() {
+            clearTimeout(window._saveTimeout);
+            window._saveTimeout = setTimeout(() => salvarDados(), 300);
         }
 
         // ==================== NAVEGAÇÃO ====================
         function irPara(pageName) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('page-' + pageName).classList.add('active');
-
             document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
             const navItem = document.querySelector(`.bottom-nav-item[data-page="${pageName}"]`);
             if (navItem) navItem.classList.add('active');
-
             document.getElementById('appContent').scrollTop = 0;
+            salvarDados(); // salva última página
         }
 
-        // Swipe entre páginas
         let touchStartX = 0;
         let touchEndX = 0;
         const paginas = ['dados', 'exames', 'resultados', 'plano', 'alimentos', 'chat'];
@@ -1206,7 +1070,7 @@
         }
 
         // ==================== CÁLCULOS ====================
-        async function calcularTudo() {
+        function calcularTudo() {
             const sexo = document.getElementById('sexo').value;
             const idade = parseFloat(document.getElementById('idade').value);
             const peso = parseFloat(document.getElementById('peso').value);
@@ -1277,12 +1141,12 @@
             gerarPlanoAlimentar();
             renderizarAlimentosResumo();
             document.getElementById('btnExportar').style.display = 'inline-flex';
-
-            // Salvar no Firebase
-            await salvarDadosUsuario();
+            salvarDados();
         }
 
         function resetForm() {
+            if (!confirm('Tem certeza que deseja limpar todos os dados salvos?')) return;
+            localStorage.removeItem('nutriia_dados');
             document.getElementById('dadosForm').reset();
             document.getElementById('nome').value = '';
             document.getElementById('idade').value = 30;
@@ -1299,7 +1163,11 @@
             document.getElementById('alimentosResumo').innerHTML = '';
             document.getElementById('examesResultado').innerHTML = '';
             document.getElementById('btnExportar').style.display = 'none';
-            mostrarStatus('Formulário limpo.');
+            // Limpar exames
+            ['hemoglobina', 'ferritina', 'vitaminaD', 'vitaminaB12', 'glicose', 'hemoglobinaGlicada',
+                'colesterolTotal', 'hdl', 'ldl', 'triglicerideos', 'tsh', 'creatinina'
+            ].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('examesContainer').style.display = 'none';
         }
 
         // ==================== EXAMES ====================
@@ -1307,26 +1175,25 @@
             const container = document.getElementById('examesContainer');
             if (hasExames) {
                 container.style.display = 'block';
+                salvarDados();
             } else {
                 container.style.display = 'none';
                 ['hemoglobina', 'ferritina', 'vitaminaD', 'vitaminaB12', 'glicose', 'hemoglobinaGlicada',
                     'colesterolTotal', 'hdl', 'ldl', 'triglicerideos', 'tsh', 'creatinina'
                 ].forEach(id => document.getElementById(id).value = '');
                 document.getElementById('examesResultado').innerHTML = '';
-                examesAnalisados = [];
-                if (usuarioDados) salvarDadosUsuario();
+                salvarDados();
             }
         }
 
-        async function analisarExames() {
+        function analisarExames() {
             const resultado = analisarExamesSilencioso();
             if (!resultado || resultado.length === 0) {
                 document.getElementById('examesResultado').innerHTML = '<p style="color: var(--text-light);">Nenhum exame preenchido.</p>';
                 return;
             }
             renderizarAnaliseExames(resultado);
-            // Salvar no Firebase se houver usuário
-            if (usuarioDados) await salvarDadosUsuario();
+            salvarDados();
         }
 
         function analisarExamesSilencioso() {
@@ -1363,9 +1230,12 @@
             exames.forEach(e => {
                 let cls = 'normal';
                 let icon = '✅';
-                if (e.status === 'baixo') { cls = 'info'; icon = '⬇️'; }
-                if (e.status === 'alto') { cls = 'danger'; icon = '⬆️'; }
-                if (e.status === 'normal') { cls = 'normal'; icon = '✅'; }
+                if (e.status === 'baixo') { cls = 'info';
+                    icon = '⬇️'; }
+                if (e.status === 'alto') { cls = 'danger';
+                    icon = '⬆️'; }
+                if (e.status === 'normal') { cls = 'normal';
+                    icon = '✅'; }
                 html += `<div class="exam-alert ${cls}">
                     ${icon} <strong>${e.nome}:</strong> ${e.valor} ${e.unidade} 
                     (${e.min}-${e.max}) - ${e.status === 'normal' ? 'Ideal' : e.status === 'baixo' ? 'Abaixo' : 'Acima'}
@@ -1380,6 +1250,7 @@
             if (!usuarioDados) return;
             const d = usuarioDados;
             const objetoTxt = d.objetivo === 'perda' ? 'Perda de Peso' : d.objetivo === 'ganho' ? 'Ganho de Massa' : 'Manutenção';
+            const restricaoTxt = d.restricoes !== 'nenhuma' ? ` - ${d.restricoes}` : '';
 
             let html = `
                 <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;">
@@ -1692,7 +1563,7 @@
         }
 
         // ==================== CHAT IA ====================
-        async function enviarMensagem() {
+        function enviarMensagem() {
             const input = document.getElementById('chatInput');
             const mensagem = input.value.trim();
             if (!mensagem) return;
@@ -1704,20 +1575,18 @@
             chatMessages.appendChild(userMsg);
 
             const respostaIA = gerarRespostaIA(mensagem);
-            setTimeout(async () => {
+            setTimeout(() => {
                 const aiMsg = document.createElement('div');
                 aiMsg.className = 'chat-message ai';
                 aiMsg.innerHTML = respostaIA;
                 chatMessages.appendChild(aiMsg);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-                // Salvar chat no Firebase
-                await salvarDadosUsuario();
+                salvarDados(); // salva chat
             }, 500);
 
             input.value = '';
             chatMessages.scrollTop = chatMessages.scrollHeight;
-            // Salvar também imediatamente (mensagem do usuário)
-            await salvarDadosUsuario();
+            salvarDados(); // salva mensagem do usuário
         }
 
         function gerarRespostaIA(pergunta) {
@@ -1790,8 +1659,43 @@
         // ==================== INICIALIZAÇÃO ====================
         document.addEventListener('DOMContentLoaded', function() {
             renderizarTabelaAlimentos();
-            autenticarAnonimo();
+            carregarDados(); // carrega dados salvos
+
+            // Se não houver dados salvos, definir chat padrão
+            if (!localStorage.getItem('nutriia_dados')) {
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="chat-message ai">
+                        👋 Olá! Sou a <strong>NutriIA</strong>, sua especialista em nutrição e esportiva.
+                        Posso ajudar com dietas, alimentos baratos, exames, treinos e mais.
+                        O que gostaria de saber?
+                        <br><br>💡 <em>Preencha seus dados na aba "Dados" para recomendações personalizadas!</em>
+                    </div>
+                `;
+            }
+
+            // Salvar dados automaticamente ao alterar campos
+            const camposDados = ['nome', 'sexo', 'idade', 'peso', 'altura', 'atividade', 'objetivo', 'restricoes'];
+            camposDados.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', salvarComDebounce);
+                    el.addEventListener('input', salvarComDebounce);
+                }
+            });
+
+            const camposExames = ['hemoglobina', 'ferritina', 'vitaminaD', 'vitaminaB12', 'glicose', 'hemoglobinaGlicada',
+                'colesterolTotal', 'hdl', 'ldl', 'triglicerideos', 'tsh', 'creatinina'
+            ];
+            camposExames.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', salvarComDebounce);
+                    el.addEventListener('input', salvarComDebounce);
+                }
+            });
         });
+
+        console.log('🥗 NutriIA mobile com persistência carregado!');
     </script>
 </body>
 </html>
