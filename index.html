@@ -626,7 +626,7 @@
             <div class="card">
                 <h2 class="card-title"><span class="emoji">📋</span> Seus Dados Pessoais</h2>
                 <p class="card-subtitle">Preencha para calcular seu gasto basal e montar sua dieta ideal.</p>
-                <form id="dadosForm" onsubmit="event.preventDefault(); calcularTudo();">
+                <form id="dadosForm">
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nome</label>
@@ -647,11 +647,11 @@
                         </div>
                         <div class="form-group">
                             <label>Peso (kg)</label>
-                            <input type="number" id="peso" min="30" max="300" step="0.1" value="70" required>
+                            <input type="text" id="peso" placeholder="Ex: 70" value="70" required>
                         </div>
                         <div class="form-group">
                             <label>Altura (cm)</label>
-                            <input type="number" id="altura" min="100" max="250" value="170" required>
+                            <input type="text" id="altura" placeholder="Ex: 170" value="170" required>
                         </div>
                     </div>
                     <div class="form-row">
@@ -688,7 +688,8 @@
                         </select>
                     </div>
                     <div style="margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button type="submit" class="btn btn-primary btn-lg" onclick="calcularTudo(); irPara('resultados');">
+                        <!-- Botão alterado para type="button" e com onclick único -->
+                        <button type="button" class="btn btn-primary btn-lg" onclick="calcularTudo(); irPara('resultados');">
                             🧮 Calcular & Gerar Dieta
                         </button>
                         <button type="button" class="btn btn-outline" onclick="resetForm()">🔄 Limpar</button>
@@ -722,57 +723,57 @@
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>Hemoglobina <small>(12-16)</small></label>
-                            <input type="number" id="hemoglobina" step="0.1" placeholder="g/dL">
+                            <input type="text" id="hemoglobina" placeholder="g/dL">
                         </div>
                         <div class="form-group">
                             <label>Ferritina <small>(15-150)</small></label>
-                            <input type="number" id="ferritina" step="0.1" placeholder="ng/mL">
+                            <input type="text" id="ferritina" placeholder="ng/mL">
                         </div>
                         <div class="form-group">
                             <label>Vitamina D <small>(30-60)</small></label>
-                            <input type="number" id="vitaminaD" step="0.1" placeholder="ng/mL">
+                            <input type="text" id="vitaminaD" placeholder="ng/mL">
                         </div>
                     </div>
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>Vitamina B12 <small>(200-900)</small></label>
-                            <input type="number" id="vitaminaB12" step="0.1" placeholder="pg/mL">
+                            <input type="text" id="vitaminaB12" placeholder="pg/mL">
                         </div>
                         <div class="form-group">
                             <label>Glicose <small>(70-99)</small></label>
-                            <input type="number" id="glicose" step="0.1" placeholder="mg/dL">
+                            <input type="text" id="glicose" placeholder="mg/dL">
                         </div>
                         <div class="form-group">
                             <label>HbA1c <small>(&lt;5.7)</small></label>
-                            <input type="number" id="hemoglobinaGlicada" step="0.1" placeholder="%">
+                            <input type="text" id="hemoglobinaGlicada" placeholder="%">
                         </div>
                     </div>
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>Colesterol Total <small>(&lt;190)</small></label>
-                            <input type="number" id="colesterolTotal" step="0.1" placeholder="mg/dL">
+                            <input type="text" id="colesterolTotal" placeholder="mg/dL">
                         </div>
                         <div class="form-group">
                             <label>HDL <small>(&gt;40)</small></label>
-                            <input type="number" id="hdl" step="0.1" placeholder="mg/dL">
+                            <input type="text" id="hdl" placeholder="mg/dL">
                         </div>
                         <div class="form-group">
                             <label>LDL <small>(&lt;130)</small></label>
-                            <input type="number" id="ldl" step="0.1" placeholder="mg/dL">
+                            <input type="text" id="ldl" placeholder="mg/dL">
                         </div>
                     </div>
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>Triglicerídeos <small>(&lt;150)</small></label>
-                            <input type="number" id="triglicerideos" step="0.1" placeholder="mg/dL">
+                            <input type="text" id="triglicerideos" placeholder="mg/dL">
                         </div>
                         <div class="form-group">
                             <label>TSH <small>(0.4-4.0)</small></label>
-                            <input type="number" id="tsh" step="0.01" placeholder="mUI/L">
+                            <input type="text" id="tsh" placeholder="mUI/L">
                         </div>
                         <div class="form-group">
                             <label>Creatinina <small>(0.6-1.2)</small></label>
-                            <input type="number" id="creatinina" step="0.1" placeholder="mg/dL">
+                            <input type="text" id="creatinina" placeholder="mg/dL">
                         </div>
                     </div>
                     <div style="margin-top: 12px;">
@@ -940,25 +941,29 @@
 
         // ==================== PERSISTÊNCIA (localStorage) ====================
         function salvarDados() {
-            const dados = {
-                usuario: usuarioDados,
-                exames: examesAnalisados,
-                planoGerado: planoGerado,
-                camposDados: {
-                    nome: document.getElementById('nome')?.value || '',
-                    sexo: document.getElementById('sexo')?.value || 'masculino',
-                    idade: document.getElementById('idade')?.value || '30',
-                    peso: document.getElementById('peso')?.value || '70',
-                    altura: document.getElementById('altura')?.value || '170',
-                    atividade: document.getElementById('atividade')?.value || '1.375',
-                    objetivo: document.getElementById('objetivo')?.value || 'manutencao',
-                    restricoes: document.getElementById('restricoes')?.value || 'nenhuma'
-                },
-                camposExames: obterCamposExames(),
-                ultimaPagina: document.querySelector('.page.active')?.id.replace('page-', '') || 'dados',
-                chatMessages: document.getElementById('chatMessages')?.innerHTML || ''
-            };
-            localStorage.setItem('nutriia_dados', JSON.stringify(dados));
+            try {
+                const dados = {
+                    usuario: usuarioDados,
+                    exames: examesAnalisados,
+                    planoGerado: planoGerado,
+                    camposDados: {
+                        nome: document.getElementById('nome')?.value || '',
+                        sexo: document.getElementById('sexo')?.value || 'masculino',
+                        idade: document.getElementById('idade')?.value || '30',
+                        peso: document.getElementById('peso')?.value || '70',
+                        altura: document.getElementById('altura')?.value || '170',
+                        atividade: document.getElementById('atividade')?.value || '1.375',
+                        objetivo: document.getElementById('objetivo')?.value || 'manutencao',
+                        restricoes: document.getElementById('restricoes')?.value || 'nenhuma'
+                    },
+                    camposExames: obterCamposExames(),
+                    ultimaPagina: document.querySelector('.page.active')?.id.replace('page-', '') || 'dados',
+                    chatMessages: document.getElementById('chatMessages')?.innerHTML || ''
+                };
+                localStorage.setItem('nutriia_dados', JSON.stringify(dados));
+            } catch (e) {
+                console.warn('Erro ao salvar dados:', e);
+            }
         }
 
         function carregarDados() {
@@ -966,27 +971,23 @@
             if (!json) return;
             try {
                 const dados = JSON.parse(json);
-                // Restaurar campos de dados
                 if (dados.camposDados) {
                     Object.keys(dados.camposDados).forEach(key => {
                         const el = document.getElementById(key);
                         if (el) el.value = dados.camposDados[key];
                     });
                 }
-                // Restaurar campos de exames
                 if (dados.camposExames) {
                     Object.keys(dados.camposExames).forEach(key => {
                         const el = document.getElementById(key);
                         if (el) el.value = dados.camposExames[key];
                     });
-                    // Se havia exames preenchidos, exibir container
                     const temExames = Object.values(dados.camposExames).some(v => v !== '' && v !== null && v !== undefined);
                     if (temExames) {
                         document.getElementById('examesContainer').style.display = 'block';
-                        analisarExamesSilencioso(); // atualiza examesAnalisados
+                        analisarExamesSilencioso();
                     }
                 }
-                // Restaurar estado global
                 if (dados.usuario) {
                     usuarioDados = dados.usuario;
                     examesAnalisados = dados.exames;
@@ -998,11 +999,9 @@
                         renderizarAlimentosResumo();
                     }
                 }
-                // Restaurar chat
                 if (dados.chatMessages) {
                     document.getElementById('chatMessages').innerHTML = dados.chatMessages;
                 }
-                // Restaurar última página
                 if (dados.ultimaPagina) {
                     irPara(dados.ultimaPagina);
                 }
@@ -1023,7 +1022,6 @@
             return campos;
         }
 
-        // Salvar automaticamente a cada interação importante
         function salvarComDebounce() {
             clearTimeout(window._saveTimeout);
             window._saveTimeout = setTimeout(() => salvarDados(), 300);
@@ -1032,12 +1030,13 @@
         // ==================== NAVEGAÇÃO ====================
         function irPara(pageName) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + pageName).classList.add('active');
+            const target = document.getElementById('page-' + pageName);
+            if (target) target.classList.add('active');
             document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
             const navItem = document.querySelector(`.bottom-nav-item[data-page="${pageName}"]`);
             if (navItem) navItem.classList.add('active');
             document.getElementById('appContent').scrollTop = 0;
-            salvarDados(); // salva última página
+            salvarDados();
         }
 
         let touchStartX = 0;
@@ -1071,77 +1070,86 @@
 
         // ==================== CÁLCULOS ====================
         function calcularTudo() {
-            const sexo = document.getElementById('sexo').value;
-            const idade = parseFloat(document.getElementById('idade').value);
-            const peso = parseFloat(document.getElementById('peso').value);
-            const altura = parseFloat(document.getElementById('altura').value);
-            const atividade = parseFloat(document.getElementById('atividade').value);
-            const objetivo = document.getElementById('objetivo').value;
-            const restricoes = document.getElementById('restricoes').value;
-            const nome = document.getElementById('nome').value || 'Usuário';
+            console.log('calcularTudo() iniciada');
+            try {
+                const sexo = document.getElementById('sexo').value;
+                const idade = parseInt(document.getElementById('idade').value);
+                // Substitui vírgula por ponto
+                const pesoVal = document.getElementById('peso').value.replace(',', '.');
+                const alturaVal = document.getElementById('altura').value.replace(',', '.');
+                const peso = parseFloat(pesoVal);
+                const altura = parseFloat(alturaVal);
+                const atividade = parseFloat(document.getElementById('atividade').value);
+                const objetivo = document.getElementById('objetivo').value;
+                const restricoes = document.getElementById('restricoes').value;
+                const nome = document.getElementById('nome').value.trim() || 'Usuário';
 
-            if (!idade || !peso || !altura || idade < 10 || peso < 20 || altura < 80) {
-                alert('Por favor, preencha todos os campos com valores válidos.');
-                return;
+                if (!idade || !peso || !altura || idade < 10 || peso < 20 || altura < 80) {
+                    alert('Por favor, preencha todos os campos com valores válidos.\nPeso e altura devem ser números (use ponto ou vírgula).');
+                    return;
+                }
+
+                let tmb;
+                if (sexo === 'masculino') {
+                    tmb = 10 * peso + 6.25 * altura - 5 * idade + 5;
+                } else {
+                    tmb = 10 * peso + 6.25 * altura - 5 * idade - 161;
+                }
+                const get = tmb * atividade;
+
+                let caloriasAlvo;
+                if (objetivo === 'perda') caloriasAlvo = get - 500;
+                else if (objetivo === 'ganho') caloriasAlvo = get + 400;
+                else caloriasAlvo = get;
+
+                let protGramaKg;
+                if (objetivo === 'perda') protGramaKg = 2.0;
+                else if (objetivo === 'ganho') protGramaKg = 1.8;
+                else protGramaKg = 1.4;
+
+                const protGramas = protGramaKg * peso;
+                const protCalorias = protGramas * 4;
+
+                let gordPct;
+                if (objetivo === 'perda') gordPct = 0.25;
+                else if (objetivo === 'ganho') gordPct = 0.30;
+                else gordPct = 0.28;
+                const gordCalorias = caloriasAlvo * gordPct;
+                const gordGramas = gordCalorias / 9;
+
+                const carboCalorias = caloriasAlvo - protCalorias - gordCalorias;
+                const carboGramas = carboCalorias / 4;
+
+                usuarioDados = {
+                    nome,
+                    sexo,
+                    idade,
+                    peso,
+                    altura,
+                    atividade,
+                    objetivo,
+                    restricoes,
+                    tmb: Math.round(tmb),
+                    get: Math.round(get),
+                    caloriasAlvo: Math.round(caloriasAlvo),
+                    protGramas: Math.round(protGramas * 10) / 10,
+                    gordGramas: Math.round(gordGramas * 10) / 10,
+                    carboGramas: Math.round(carboGramas * 10) / 10,
+                    protGramaKg,
+                    gordPct
+                };
+
+                examesAnalisados = analisarExamesSilencioso();
+                renderizarResultados();
+                gerarPlanoAlimentar();
+                renderizarAlimentosResumo();
+                document.getElementById('btnExportar').style.display = 'inline-flex';
+                salvarDados();
+                console.log('Cálculo concluído com sucesso.');
+            } catch (erro) {
+                console.error('Erro em calcularTudo:', erro);
+                alert('Ocorreu um erro inesperado: ' + erro.message + '\nVerifique o console para mais detalhes.');
             }
-
-            let tmb;
-            if (sexo === 'masculino') {
-                tmb = 10 * peso + 6.25 * altura - 5 * idade + 5;
-            } else {
-                tmb = 10 * peso + 6.25 * altura - 5 * idade - 161;
-            }
-            const get = tmb * atividade;
-
-            let caloriasAlvo;
-            if (objetivo === 'perda') caloriasAlvo = get - 500;
-            else if (objetivo === 'ganho') caloriasAlvo = get + 400;
-            else caloriasAlvo = get;
-
-            let protGramaKg;
-            if (objetivo === 'perda') protGramaKg = 2.0;
-            else if (objetivo === 'ganho') protGramaKg = 1.8;
-            else protGramaKg = 1.4;
-
-            const protGramas = protGramaKg * peso;
-            const protCalorias = protGramas * 4;
-
-            let gordPct;
-            if (objetivo === 'perda') gordPct = 0.25;
-            else if (objetivo === 'ganho') gordPct = 0.30;
-            else gordPct = 0.28;
-            const gordCalorias = caloriasAlvo * gordPct;
-            const gordGramas = gordCalorias / 9;
-
-            const carboCalorias = caloriasAlvo - protCalorias - gordCalorias;
-            const carboGramas = carboCalorias / 4;
-
-            usuarioDados = {
-                nome,
-                sexo,
-                idade,
-                peso,
-                altura,
-                atividade,
-                objetivo,
-                restricoes,
-                tmb: Math.round(tmb),
-                get: Math.round(get),
-                caloriasAlvo: Math.round(caloriasAlvo),
-                protGramas: Math.round(protGramas * 10) / 10,
-                gordGramas: Math.round(gordGramas * 10) / 10,
-                carboGramas: Math.round(carboGramas * 10) / 10,
-                protGramaKg,
-                gordPct,
-                restricoes
-            };
-
-            examesAnalisados = analisarExamesSilencioso();
-            renderizarResultados();
-            gerarPlanoAlimentar();
-            renderizarAlimentosResumo();
-            document.getElementById('btnExportar').style.display = 'inline-flex';
-            salvarDados();
         }
 
         function resetForm() {
@@ -1163,11 +1171,11 @@
             document.getElementById('alimentosResumo').innerHTML = '';
             document.getElementById('examesResultado').innerHTML = '';
             document.getElementById('btnExportar').style.display = 'none';
-            // Limpar exames
             ['hemoglobina', 'ferritina', 'vitaminaD', 'vitaminaB12', 'glicose', 'hemoglobinaGlicada',
                 'colesterolTotal', 'hdl', 'ldl', 'triglicerideos', 'tsh', 'creatinina'
             ].forEach(id => document.getElementById(id).value = '');
             document.getElementById('examesContainer').style.display = 'none';
+            salvarDados();
         }
 
         // ==================== EXAMES ====================
@@ -1213,9 +1221,11 @@
                 creatinina: { nome: 'Creatinina', min: 0.6, max: 1.2, unidade: 'mg/dL' },
             };
             for (const [id, ref] of Object.entries(refs)) {
-                const valor = document.getElementById(id)?.value;
-                if (valor && !isNaN(parseFloat(valor))) {
-                    const v = parseFloat(valor);
+                const el = document.getElementById(id);
+                if (!el) continue;
+                const val = el.value.replace(',', '.').trim();
+                if (val && !isNaN(parseFloat(val))) {
+                    const v = parseFloat(val);
                     let status = 'normal';
                     if (v < ref.min) status = 'baixo';
                     else if (v > ref.max) status = 'alto';
@@ -1255,7 +1265,7 @@
             let html = `
                 <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;">
                     <span class="badge badge-green">👤 ${d.nome}</span>
-                    <span class="badge badge-blue">${objetivoTxt}</span>
+                    <span class="badge badge-blue">${objetoTxt}</span>
                     ${d.restricoes !== 'nenhuma' ? `<span class="badge badge-orange">⚠️ ${d.restricoes}</span>` : ''}
                 </div>
                 <div class="result-grid">
@@ -1581,12 +1591,12 @@
                 aiMsg.innerHTML = respostaIA;
                 chatMessages.appendChild(aiMsg);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-                salvarDados(); // salva chat
+                salvarDados();
             }, 500);
 
             input.value = '';
             chatMessages.scrollTop = chatMessages.scrollHeight;
-            salvarDados(); // salva mensagem do usuário
+            salvarDados();
         }
 
         function gerarRespostaIA(pergunta) {
@@ -1659,9 +1669,8 @@
         // ==================== INICIALIZAÇÃO ====================
         document.addEventListener('DOMContentLoaded', function() {
             renderizarTabelaAlimentos();
-            carregarDados(); // carrega dados salvos
+            carregarDados();
 
-            // Se não houver dados salvos, definir chat padrão
             if (!localStorage.getItem('nutriia_dados')) {
                 document.getElementById('chatMessages').innerHTML = `
                     <div class="chat-message ai">
@@ -1673,7 +1682,7 @@
                 `;
             }
 
-            // Salvar dados automaticamente ao alterar campos
+            // Auto-salvar nos campos de dados
             const camposDados = ['nome', 'sexo', 'idade', 'peso', 'altura', 'atividade', 'objetivo', 'restricoes'];
             camposDados.forEach(id => {
                 const el = document.getElementById(id);
@@ -1695,7 +1704,7 @@
             });
         });
 
-        console.log('🥗 NutriIA mobile com persistência carregado!');
+        console.log('🥗 NutriIA mobile com persistência e correções carregado!');
     </script>
 </body>
 </html>
